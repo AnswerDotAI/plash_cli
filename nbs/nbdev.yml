@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "plash-cli"
+  site-url: "https://AnswerDotAI.github.io/plash-cli"
+  description: "CLI for the Plash hosting service"
+  repo-branch: main
+  repo-url: "https://github.com/AnswerDotAI/plash-cli"
