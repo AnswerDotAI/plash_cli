@@ -21,7 +21,7 @@ $ pip install git+https://github.com/AnswerDotAI/plash-cli.git
 or from [pypi](https://pypi.org/project/plash-cli/)
 
 ``` sh
-$ pip install plash_cli
+$ pip install plash-cli
 ```
 
 ## Deploy Your First FastHTML App
