@@ -59,6 +59,10 @@ def index():
 serve()
 ```
 
+Then create a requirements.txt containing:
+
+    python-fasthtml
+
 ### Deploy your app
 
 Run `plash_deploy`. Your app will be live at
