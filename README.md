@@ -121,3 +121,40 @@ in your Plash container, to modify your apps behavior for local and
 production development. You can download any deployed database names by
 clicking the Download App button to get a compressed file of all files
 in your /app folder in your deployed app.
+
+## Deploy to Pla.sh on commit
+
+```yaml
+yaml 
+name: Deploy to Plash
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Create Plash config
+        run: |
+          mkdir -p ~/.config
+          echo "PLASH_EMAIL=${{ secrets.PLASH_EMAIL }}" > ~/.config/plash.env
+          echo "PLASH_TOKEN=${{ secrets.PLASH_TOKEN }}" >> ~/.config/plash.env
+
+      - name: Install plash_cli with uv
+        run: pip install plash_cli
+
+      - name: Deploy to Plash
+        run: plash_deploy
+```
