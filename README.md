@@ -122,9 +122,13 @@ production development. You can download any deployed database names by
 clicking the Download App button to get a compressed file of all files
 in your /app folder in your deployed app.
 
-## Deploy to Pla.sh on commit
+## Deploy to Pla.sh via GitHub Actions
 
-```yaml
+If you’d like to deploy your plash app every time you commit changes to
+your GitHub repo, you can use the following workflow to your
+`.github/workflows/` folder in the root of your repo:
+
+``` yaml
 yaml 
 name: Deploy to Plash
 
@@ -152,9 +156,13 @@ jobs:
           echo "PLASH_EMAIL=${{ secrets.PLASH_EMAIL }}" > ~/.config/plash.env
           echo "PLASH_TOKEN=${{ secrets.PLASH_TOKEN }}" >> ~/.config/plash.env
 
-      - name: Install plash_cli with uv
+      - name: Install plash_cli with pip
         run: pip install plash_cli
 
       - name: Deploy to Plash
         run: plash_deploy
 ```
+
+It relies on storing your `PLASH_EMAIL` and `PLASH_TOKEN` as secrets in
+your GitHub repo, which you can find more information on how to do that
+[here](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions).
