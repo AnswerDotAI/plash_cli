@@ -10,6 +10,7 @@ d = { 'settings': { 'branch': 'main',
                                 'plash_cli.core.get_global_cfg': ('core.html#get_global_cfg', 'plash_cli/core.py'),
                                 'plash_cli.core.is_included': ('core.html#is_included', 'plash_cli/core.py'),
                                 'plash_cli.core.login': ('core.html#login', 'plash_cli/core.py'),
+                                'plash_cli.core.logs': ('core.html#logs', 'plash_cli/core.py'),
                                 'plash_cli.core.poll_token': ('core.html#poll_token', 'plash_cli/core.py'),
                                 'plash_cli.core.validate_app': ('core.html#validate_app', 'plash_cli/core.py'),
                                 'plash_cli.core.view': ('core.html#view', 'plash_cli/core.py')}}}
