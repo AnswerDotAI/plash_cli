@@ -4,7 +4,7 @@
 
 # %% auto 0
 __all__ = ['PLASH_CONFIG_HOME', 'get_global_cfg', 'is_included', 'create_tar_archive', 'validate_app', 'deploy', 'poll_token',
-           'login']
+           'login', 'view']
 
 # %% ../nbs/00_core.ipynb 2
 from fastcore.all import *
@@ -122,3 +122,13 @@ def login(
         Path(token_file).write_text(token)
         print(f"Authentication successful! Token saved to {token_file}")
     else: print("Authentication timed out.")
+
+# %% ../nbs/00_core.ipynb 13
+@call_parse
+def view(
+    path:Path=Path('.'), # Path to project
+):
+    app_id = (Path(path) / '.plash').read_text().split("=")[-1]
+    url = f"https://{app_id}.pla.sh"
+    print(f"Opening browser to view app :\n{url}\n")
+    webbrowser.open(url)
