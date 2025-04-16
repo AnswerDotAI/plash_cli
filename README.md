@@ -162,13 +162,13 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install plash-cli with pip
-        run: pip install plash-cli
-
       - name: Create Plash config
         run: |
           mkdir -p ~/.config
           echo '${{ secrets.PLASH_CONFIG }}' > ~/.config/plash_config.json
+
+      - name: Install plash-cli with pip
+        run: pip install plash-cli
 
       - name: Deploy to Plash
         run: plash_deploy
