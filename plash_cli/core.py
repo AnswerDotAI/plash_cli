@@ -152,9 +152,9 @@ def view(
 @call_parse
 def delete(
     path:Path=Path('.'), # Path to project
+    force:bool=False,    # Skip confirmation prompt
     local:bool=False,    # Local dev
-    port:int=5002,       # Port for local dev
-    force:bool=False):   # Skip confirmation prompt
+    port:int=5002):      # Port for local dev
     'Delete your deployed app'
     aid = get_app_id(path)
     if not force:
@@ -195,14 +195,11 @@ log_modes = str_enum('log_modes', 'build', 'app')
 # %% ../nbs/00_core.ipynb 24
 @call_parse
 def logs(
-    path:Path=Path('.'), # Path to project
-    local:bool=False,    # Local dev
-    port:int=5002,       # Port for local dev
-    mode:str='build'): # Choose between build or app logs
+    path:Path=Path('.'),    # Path to project
+    mode:log_modes='build', # Choose between build or app logs
+    local:bool=False,       # Local dev
+    port:int=5002):         # Port for local dev
     'Prints the logs for your deployed app'
-    if mode not in log_modes:
-        print(f"Invalid log mode '{mode}'. Choose between {log_modes}.")
-        return
     aid = get_app_id(path)
     r = mk_auth_req(endpoint(f"/logs?aid={aid}&mode={mode}",local,port))
     return r.text
