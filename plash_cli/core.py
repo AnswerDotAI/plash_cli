@@ -197,10 +197,24 @@ log_modes = str_enum('log_modes', 'build', 'app')
 def logs(
     path:Path=Path('.'),    # Path to project
     mode:log_modes='build', # Choose between build or app logs
+    tail:bool=False,        # Tail the logs
     local:bool=False,       # Local dev
     port:int=5002):         # Port for local dev
     'Prints the logs for your deployed app'
     aid = get_app_id(path)
+    if tail:
+        text = ''
+        while True:
+            try:
+                r = mk_auth_req(endpoint(f"/logs?aid={aid}&mode={mode}",local,port))
+                if r.status_code == 200:
+                    print(r.text[len(text):], end='') # Only print updates
+                    text = r.text
+                    sleep(1)
+                else:
+                    print(f"Error: {r.status_code}")
+            except KeyboardInterrupt:
+                return "\nExiting"
     r = mk_auth_req(endpoint(f"/logs?aid={aid}&mode={mode}",local,port))
     return r.text
 
