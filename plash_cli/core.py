@@ -116,18 +116,18 @@ def deploy(
     # Check if path is a file
     if path.is_file():
         file = io.BytesIO(path.read_bytes())
-        aid = f'fasthtml-app-{str(uuid4())[:8]}'
+        plash_app = Path('.plash')
     else:
         validate_app(path)
         file, filecount = create_tar_archive(path)
-
         plash_app = Path(path) / '.plash'
-        if not plash_app.exists():
-            # Create the .plash file and write the app name
-            plash_app.write_text(f'export PLASH_APP_ID=fasthtml-app-{str(uuid4())[:8]}')
-        aid = parse_env(fn=plash_app)['PLASH_APP_ID']
 
-    resp = mk_auth_req(endpoint("/upload",local,port), "post", files={'file': tarz}, timeout=300.0, data={'aid': aid})
+    if not plash_app.exists():
+        # Create the .plash file and write the app name
+        plash_app.write_text(f'export PLASH_APP_ID=fasthtml-app-{str(uuid4())[:8]}')
+    aid = parse_env(fn=plash_app)['PLASH_APP_ID']
+
+    resp = mk_auth_req(endpoint("/upload",local,port), "post", files={'file': file}, timeout=300.0, data={'aid': aid})
     if resp.status_code == 200: 
         print('✅ Upload complete! Your app is currently being built.')
         if local: print(f'It will be live at http://{aid}.localhost')
