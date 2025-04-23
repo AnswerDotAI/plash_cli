@@ -26,15 +26,15 @@ $ pip install plash-cli
 
 ## Deploy Your First FastHTML App
 
-### Set Up Your Plash Token
+### Authentication
 
-You’ll need to set a PLASH_TOKEN and PLASH_EMAIL environment variables
-to use Plash. To obtain these, do the following:
+To use Plash, you’ll need to authenticate:
 
 1.  Signup for an account at https://pla.sh/
 2.  Activate your Plash subscription
-3.  Follow instructions in your Plash dashboard to save credentials
-    locally
+3.  Run `plash_login` in your terminal
+4.  A browser window will open for authentication
+5.  Once authenticated, your credentials will be saved locally
 
 ### Create a FastHTML App
 
@@ -68,6 +68,19 @@ Then create a requirements.txt containing:
 Run `plash_deploy`. Your app will be live at
 `https://<app-name>.pla.sh`. The URL will be shown in the deployment
 output.
+
+### Managing Your App
+
+Plash CLI provides several commands to manage your apps:
+
+- `plash_login` - Login to Plash
+- `plash_deploy` - Deploy your app
+- `plash_view` - Open your deployed app in a browser
+- `plash_start` - Start your app if it’s stopped
+- `plash_stop` - Stop your running app
+- `plash_logs` - View your app’s logs
+- `plash_download` - Download your deployed app files
+- `plash_delete` - Delete your deployed app
 
 ### App Dependencies
 
@@ -129,7 +142,6 @@ your GitHub repo, you can use the following workflow to your
 `.github/workflows/` folder in the root of your repo:
 
 ``` yaml
-yaml 
 name: Deploy to Plash
 
 on:
@@ -153,16 +165,17 @@ jobs:
       - name: Create Plash config
         run: |
           mkdir -p ~/.config
-          echo "PLASH_EMAIL=${{ secrets.PLASH_EMAIL }}" > ~/.config/plash.env
-          echo "PLASH_TOKEN=${{ secrets.PLASH_TOKEN }}" >> ~/.config/plash.env
+          echo '${{ secrets.PLASH_CONFIG }}' > ~/.config/plash_config.json
 
-      - name: Install plash_cli with pip
-        run: pip install plash_cli
+      - name: Install plash-cli with pip
+        run: pip install plash-cli
 
       - name: Deploy to Plash
         run: plash_deploy
 ```
 
-It relies on storing your `PLASH_EMAIL` and `PLASH_TOKEN` as secrets in
-your GitHub repo, which you can find more information on how to do that
+It relies on storing your plash config as a secret named `PLASH_CONFIG`
+in your GitHub repo. After running `plash_login`, you can find these in
+`~/.config/plash_config.json` (unless you haved changed the
+XDG_CONFIG_HOME environment variable). Learn more about GitHub secrets
 [here](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions).
