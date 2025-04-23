@@ -148,7 +148,7 @@ def deploy(
     print('Initializing deployment...')
     # Check if path is a file
     if path.is_file():
-        tarz, _ = _tarz(path.read_bytes())
+        tarz, _ = _tarz(path)
         aid = app_id or f'fasthtml-app-{str(uuid4())[:8]}'
     else:
         validate_app(path)
