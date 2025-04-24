@@ -27,6 +27,7 @@ def get_client(cookie_file):
         raise FileNotFoundError("Plash config not found. Please run plash_login and try again.")
     cookies = Path(cookie_file).read_json()
     client.cookies.update(cookies)
+    client.headers.update({'X-PLASH': True})
     return client
 
 # %% ../nbs/00_core.ipynb 6
