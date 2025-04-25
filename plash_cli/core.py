@@ -131,6 +131,7 @@ def deploy(
     port:int=5002):      # Port for local dev
     '🚀 Ship your app to production'
     print('Initializing deployment...')
+    if app_id == '': print('App ID cannot be an empty string'); return
     validate_app(path)
     tarz, _ = create_tar_archive(path)
     
