@@ -106,7 +106,7 @@ def _deps(script: bytes | str) -> dict | None:
         return '\n'.join(tomllib.loads(content)['dependencies'])
     else: return None
 
-# %% ../nbs/00_core.ipynb 15
+# %% ../nbs/00_core.ipynb 16
 def create_tar_archive(path)->io.BytesIO: # Buffer of tar directory
     "Creates a tar archive of a directory, excluding files based on is_included"
     tarz = io.BytesIO()
@@ -122,7 +122,7 @@ def create_tar_archive(path)->io.BytesIO: # Buffer of tar directory
     tarz.seek(0)
     return tarz, len(files)
 
-# %% ../nbs/00_core.ipynb 16
+# %% ../nbs/00_core.ipynb 17
 @call_parse
 def deploy(
     path:Path=Path('.'), # Path to project
@@ -150,7 +150,7 @@ def deploy(
         print(f'Failure {resp.status_code}')
         print(f'Failure {resp.text}')
 
-# %% ../nbs/00_core.ipynb 18
+# %% ../nbs/00_core.ipynb 19
 @call_parse
 def view(
     path:Path=Path('.'), # Path to project
@@ -162,7 +162,7 @@ def view(
     print(f"Opening browser to view app :\n{url}\n")
     webbrowser.open(url)
 
-# %% ../nbs/00_core.ipynb 20
+# %% ../nbs/00_core.ipynb 21
 @call_parse
 def delete(
     path:Path=Path('.'), # Path to project
@@ -181,7 +181,7 @@ def delete(
     r = mk_auth_req(endpoint(f"/delete?aid={aid}",local,port), "delete")
     return r.text
 
-# %% ../nbs/00_core.ipynb 22
+# %% ../nbs/00_core.ipynb 23
 def endpoint_func(endpoint_name):
     'Creates a function for a specific API endpoint'
     @call_parse
@@ -203,10 +203,10 @@ def endpoint_func(endpoint_name):
 stop = endpoint_func('/stop')
 start = endpoint_func('/start')
 
-# %% ../nbs/00_core.ipynb 24
+# %% ../nbs/00_core.ipynb 25
 log_modes = str_enum('log_modes', 'build', 'app')
 
-# %% ../nbs/00_core.ipynb 25
+# %% ../nbs/00_core.ipynb 26
 @call_parse
 def logs(
     path:Path=Path('.'),    # Path to project
@@ -232,7 +232,7 @@ def logs(
     r = mk_auth_req(endpoint(f"/logs?aid={aid}&mode={mode}",local,port))
     return r.text
 
-# %% ../nbs/00_core.ipynb 27
+# %% ../nbs/00_core.ipynb 28
 @call_parse
 def download(
     path:Path=Path('.'),                # Path to project
