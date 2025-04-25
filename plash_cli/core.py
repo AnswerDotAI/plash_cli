@@ -120,7 +120,7 @@ def _deps(script: bytes | str) -> dict | None:
         return '\n'.join(tomllib.loads(content)['dependencies'])
     else: return None
 
-# %% ../nbs/00_core.ipynb 17
+# %% ../nbs/00_core.ipynb 16
 def _tarz(path)->io.BytesIO: # Buffer of tar directory
     "Creates a tar archive of a directory, excluding files based on is_included"
     tarz = io.BytesIO()
@@ -136,27 +136,29 @@ def _tarz(path)->io.BytesIO: # Buffer of tar directory
     tarz.seek(0)
     return tarz, len(files)
 
-# %% ../nbs/00_core.ipynb 18
+# %% ../nbs/00_core.ipynb 17
 @call_parse
 def deploy(
     path:Path=Path('.'), # Path to project
     local:bool=False,    # Local dev
-    port:int=5002):      # Port for local dev
+    port:int=5002,       # Port for local dev
+    app_id:str=None):    # App ID that will be used as the subdomain in plash
+
     """🚀 Ship your app to production"""
     print('Initializing deployment...')
     # Check if path is a file
     if path.is_file():
         tarz, _ = _tarz(path.read_bytes())
-        plash_app = path.parent / '.plash'
+        aid = app_id or f'fasthtml-app-{str(uuid4())[:8]}'
     else:
         validate_app(path)
         tarz, _ = _tarz(path)
         plash_app = Path(path) / '.plash'
-
-    if not plash_app.exists():
-        # Create the .plash file and write the app name
-        plash_app.write_text(f'export PLASH_APP_ID=fasthtml-app-{str(uuid4())[:8]}')
-    aid = parse_env(fn=plash_app)['PLASH_APP_ID']
+        if not app_id and not plash_app.exists():
+            # Create the .plash file and write the app name
+            plash_app.write_text(f'export PLASH_APP_ID=fasthtml-app-{str(uuid4())[:8]}')
+        aid = app_id or parse_env(fn=plash_app)['PLASH_APP_ID']
+    
     resp = mk_auth_req(endpoint("/upload",local,port), "post", files={'file': tarz}, timeout=300.0, data={'aid': aid})
     if resp.status_code == 200: 
         print('✅ Upload complete! Your app is currently being built.')
@@ -166,7 +168,7 @@ def deploy(
         print(f'Failure {resp.status_code}')
         print(f'Failure {resp.text}')
 
-# %% ../nbs/00_core.ipynb 20
+# %% ../nbs/00_core.ipynb 19
 @call_parse
 def view(
     path:Path=Path('.'), # Path to project
@@ -178,7 +180,7 @@ def view(
     print(f"Opening browser to view app :\n{url}\n")
     webbrowser.open(url)
 
-# %% ../nbs/00_core.ipynb 22
+# %% ../nbs/00_core.ipynb 21
 @call_parse
 def delete(
     path:Path=Path('.'), # Path to project
@@ -197,7 +199,7 @@ def delete(
     r = mk_auth_req(endpoint(f"/delete?aid={aid}",local,port), "delete")
     return r.text
 
-# %% ../nbs/00_core.ipynb 24
+# %% ../nbs/00_core.ipynb 23
 def endpoint_func(endpoint_name):
     'Creates a function for a specific API endpoint'
     @call_parse
@@ -219,10 +221,10 @@ def endpoint_func(endpoint_name):
 stop = endpoint_func('/stop')
 start = endpoint_func('/start')
 
-# %% ../nbs/00_core.ipynb 26
+# %% ../nbs/00_core.ipynb 25
 log_modes = str_enum('log_modes', 'build', 'app')
 
-# %% ../nbs/00_core.ipynb 27
+# %% ../nbs/00_core.ipynb 26
 @call_parse
 def logs(
     path:Path=Path('.'),    # Path to project
@@ -248,7 +250,7 @@ def logs(
     r = mk_auth_req(endpoint(f"/logs?aid={aid}&mode={mode}",local,port))
     return r.text
 
-# %% ../nbs/00_core.ipynb 29
+# %% ../nbs/00_core.ipynb 28
 @call_parse
 def download(
     path:Path=Path('.'),                # Path to project
