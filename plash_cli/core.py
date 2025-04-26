@@ -110,17 +110,20 @@ def login(
 def deploy(
     path:Path=Path('.'), # Path to project
     local:bool=False,    # Local dev
-    port:int=5002):      # Port for local dev
+    port:int=5002,       # Port for local dev
+    app_id:str=None):    # App ID that will be used as the subdomain in plash
+
     """🚀 Ship your app to production"""
     print('Initializing deployment...')
+    if app_id == '': print('App ID cannot be an empty string'); return
     validate_app(path)
     tarz, filecount = create_tar_archive(path)
 
     plash_app = Path(path) / '.plash'
-    if not plash_app.exists():
+    if app_id is None and not plash_app.exists():
         # Create the .plash file and write the app name
         plash_app.write_text(f'export PLASH_APP_ID=fasthtml-app-{str(uuid4())[:8]}')
-    aid = parse_env(fn=plash_app)['PLASH_APP_ID']
+    aid = app_id or parse_env(fn=plash_app)['PLASH_APP_ID']
     
     resp = mk_auth_req(endpoint("/upload",local,port), "post", files={'file': tarz}, timeout=300.0, data={'aid': aid})
     if resp.status_code == 200: 
