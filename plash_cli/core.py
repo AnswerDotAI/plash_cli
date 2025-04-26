@@ -4,8 +4,8 @@
 
 # %% auto 0
 __all__ = ['PLASH_CONFIG_HOME', 'pat', 'stop', 'start', 'log_modes', 'get_client', 'mk_auth_req', 'get_app_id', 'endpoint',
-           'is_included', 'validate_app', 'poll_cookies', 'login', 'deploy', 'view', 'delete', 'endpoint_func', 'logs',
-           'download']
+           'is_included', 'validate_app', 'poll_cookies', 'login', 'create_tar_archive', 'deploy', 'view', 'delete',
+           'endpoint_func', 'logs', 'download']
 
 # %% ../nbs/00_core.ipynb 2
 from fastcore.all import *
@@ -55,29 +55,15 @@ def is_included(path):
     return not any(p in excludes for p in path.parts)
 
 # %% ../nbs/00_core.ipynb 10
-def _tarz(path # Path to directory containing FastHTML app
-                      )->io.BytesIO: # Buffer of tar directory
-    "Creates a tar archive of a directory, excluding files based on is_included"
-    buf = io.BytesIO()
-    files = L(Path(path).iterdir()).filter(is_included)
-
-    with tarfile.open(fileobj=buf, mode='w:gz') as tar:
-        for f in files: tar.add(f, arcname=f.name)
-    buf.seek(0)
-    return buf, len(files)
-
-# %% ../nbs/00_core.ipynb 11
 def validate_app(path):
-    "Validates that the app in the directory `path` is deployable as a FastHTML app"
+    "Validates that the app in the directory or script `path` is deployable as a Plash app"
     print("Analyzing project structure...")
-
-    main_file = Path(path) / "main.py"
-    if not main_file.exists():
-        print('[red bold]ERROR: Your FastHTML app must have a main.py[/red bold]')
-        print(f'Your path is: [bold]{path}[/bold]')
+    if path.name != 'main.py' and not (path / "main.py").exists():
+        print('[red bold]ERROR: Supplied directory or script is invalid. A Plash app requires a main.py file.[/red bold]')
+        print(f'Invalid path: [bold]{path}[/bold]')
         sys.exit(1)
 
-# %% ../nbs/00_core.ipynb 13
+# %% ../nbs/00_core.ipynb 12
 def poll_cookies(paircode, local, port=None, interval=1, timeout=180):
     "Poll server for token until received or timeout"
     start = time()
@@ -105,7 +91,7 @@ def login(
         print(f"Authentication successful! Config saved to {PLASH_CONFIG_HOME}")
     else: print("Authentication timed out.")
 
-# %% ../nbs/00_core.ipynb 15
+# %% ../nbs/00_core.ipynb 14
 pat = r'(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$'
 
 def _deps(script: bytes | str) -> dict | None:
@@ -120,8 +106,8 @@ def _deps(script: bytes | str) -> dict | None:
         return '\n'.join(tomllib.loads(content)['dependencies'])
     else: return None
 
-# %% ../nbs/00_core.ipynb 16
-def _tarz(path)->io.BytesIO: # Buffer of tar directory
+# %% ../nbs/00_core.ipynb 15
+def create_tar_archive(path)->io.BytesIO: # Buffer of tar directory
     "Creates a tar archive of a directory, excluding files based on is_included"
     tarz = io.BytesIO()
     files = L(path if path.is_file() else Path(path).iterdir()).filter(is_included)
@@ -136,7 +122,7 @@ def _tarz(path)->io.BytesIO: # Buffer of tar directory
     tarz.seek(0)
     return tarz, len(files)
 
-# %% ../nbs/00_core.ipynb 17
+# %% ../nbs/00_core.ipynb 16
 @call_parse
 def deploy(
     path:Path=Path('.'), # Path to project
@@ -145,20 +131,17 @@ def deploy(
     port:int=5002):      # Port for local dev
     '🚀 Ship your app to production'
     print('Initializing deployment...')
-    if path.is_file():
-        tarz, _ = _tarz(path)
-        aid = app_id or f'fasthtml-app-{str(uuid4())[:8]}'
-    else:
-        validate_app(path)
-        tarz, _ = _tarz(path)
-        plash_app = Path(path) / '.plash'
-        if not app_id and not plash_app.exists():
-            # Create the .plash file and write the app name
-            plash_app.write_text(f'export PLASH_APP_ID=fasthtml-app-{str(uuid4())[:8]}')
-        aid = app_id or parse_env(fn=plash_app)['PLASH_APP_ID']
+    validate_app(path)
+    tarz, _ = create_tar_archive(path)
+    
+    if path.is_file(): path = path.parent
+    plash_app = path / '.plash'
+    if not app_id and not plash_app.exists():
+        plash_app.write_text(f'export PLASH_APP_ID=fasthtml-app-{str(uuid4())[:8]}')
+    aid = app_id or parse_env(fn=plash_app)['PLASH_APP_ID']
     
     resp = mk_auth_req(endpoint("/upload",local,port), "post", files={'file': tarz}, timeout=300.0, data={'aid': aid})
-    if resp.status_code == 200: 
+    if resp.status_code == 200:
         print('✅ Upload complete! Your app is currently being built.')
         if local: print(f'It will be live at http://{aid}.localhost')
         else: print(f'It will be live at https://{aid}.pla.sh')
@@ -166,7 +149,7 @@ def deploy(
         print(f'Failure {resp.status_code}')
         print(f'Failure {resp.text}')
 
-# %% ../nbs/00_core.ipynb 19
+# %% ../nbs/00_core.ipynb 18
 @call_parse
 def view(
     path:Path=Path('.'), # Path to project
@@ -178,7 +161,7 @@ def view(
     print(f"Opening browser to view app :\n{url}\n")
     webbrowser.open(url)
 
-# %% ../nbs/00_core.ipynb 21
+# %% ../nbs/00_core.ipynb 20
 @call_parse
 def delete(
     path:Path=Path('.'), # Path to project
@@ -197,7 +180,7 @@ def delete(
     r = mk_auth_req(endpoint(f"/delete?aid={aid}",local,port), "delete")
     return r.text
 
-# %% ../nbs/00_core.ipynb 23
+# %% ../nbs/00_core.ipynb 22
 def endpoint_func(endpoint_name):
     'Creates a function for a specific API endpoint'
     @call_parse
@@ -219,10 +202,10 @@ def endpoint_func(endpoint_name):
 stop = endpoint_func('/stop')
 start = endpoint_func('/start')
 
-# %% ../nbs/00_core.ipynb 25
+# %% ../nbs/00_core.ipynb 24
 log_modes = str_enum('log_modes', 'build', 'app')
 
-# %% ../nbs/00_core.ipynb 26
+# %% ../nbs/00_core.ipynb 25
 @call_parse
 def logs(
     path:Path=Path('.'),    # Path to project
@@ -248,7 +231,7 @@ def logs(
     r = mk_auth_req(endpoint(f"/logs?aid={aid}&mode={mode}",local,port))
     return r.text
 
-# %% ../nbs/00_core.ipynb 28
+# %% ../nbs/00_core.ipynb 27
 @call_parse
 def download(
     path:Path=Path('.'),                # Path to project
