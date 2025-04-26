@@ -12,16 +12,16 @@ recommend hosting critical applications yet.
 ### Installation
 
 Install latest from the GitHub
-[repository](https://github.com/AnswerDotAI/plash-cli):
+[repository](https://github.com/AnswerDotAI/plash_cli):
 
 ``` sh
 $ pip install git+https://github.com/AnswerDotAI/plash-cli.git
 ```
 
-or from [pypi](https://pypi.org/project/plash-cli/)
+or from [pypi](https://pypi.org/project/plash_cli/)
 
 ``` sh
-$ pip install plash-cli
+$ pip install plash_cli
 ```
 
 ## Deploy Your First FastHTML App
