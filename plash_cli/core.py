@@ -140,13 +140,11 @@ def _tarz(path)->io.BytesIO: # Buffer of tar directory
 @call_parse
 def deploy(
     path:Path=Path('.'), # Path to project
+    app_id:str=None,     # App ID that will be used as the subdomain in plash
     local:bool=False,    # Local dev
-    port:int=5002,       # Port for local dev
-    app_id:str=None):    # App ID that will be used as the subdomain in plash
-
-    """🚀 Ship your app to production"""
+    port:int=5002):      # Port for local dev
+    '🚀 Ship your app to production'
     print('Initializing deployment...')
-    # Check if path is a file
     if path.is_file():
         tarz, _ = _tarz(path)
         aid = app_id or f'fasthtml-app-{str(uuid4())[:8]}'
