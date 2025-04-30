@@ -105,7 +105,7 @@ def prepare_archive(path: Path) -> tuple[io.BytesIO, int]:
         print(f'Invalid path: {path}')
         sys.exit(1)
         
-    deps = _deps(path / 'main.py').read_text()
+    deps = _deps((path / 'main.py').read_text())
     if not (bool(deps) ^ (path/"requirements.txt").exists()):
         print('ERROR: A Plash app should contain either a requirements.txt file or inline dependencies (see PEP723), but not both.')
         print(f'Invalid path: {path}')
@@ -149,7 +149,7 @@ def deploy(
         print(f'Failure {resp.status_code}')
         print(f'Failure {resp.text}')
 
-# %% ../nbs/00_core.ipynb 19
+# %% ../nbs/00_core.ipynb 17
 @call_parse
 def view(
     path:Path=Path('.'), # Path to project
@@ -161,7 +161,7 @@ def view(
     print(f"Opening browser to view app :\n{url}\n")
     webbrowser.open(url)
 
-# %% ../nbs/00_core.ipynb 21
+# %% ../nbs/00_core.ipynb 19
 @call_parse
 def delete(
     path:Path=Path('.'), # Path to project
@@ -180,7 +180,7 @@ def delete(
     r = mk_auth_req(endpoint(f"/delete?aid={aid}",local,port), "delete")
     return r.text
 
-# %% ../nbs/00_core.ipynb 23
+# %% ../nbs/00_core.ipynb 21
 def endpoint_func(endpoint_name):
     'Creates a function for a specific API endpoint'
     @call_parse
@@ -202,10 +202,10 @@ def endpoint_func(endpoint_name):
 stop = endpoint_func('/stop')
 start = endpoint_func('/start')
 
-# %% ../nbs/00_core.ipynb 25
+# %% ../nbs/00_core.ipynb 23
 log_modes = str_enum('log_modes', 'build', 'app')
 
-# %% ../nbs/00_core.ipynb 26
+# %% ../nbs/00_core.ipynb 24
 @call_parse
 def logs(
     path:Path=Path('.'),    # Path to project
@@ -231,7 +231,7 @@ def logs(
     r = mk_auth_req(endpoint(f"/logs?aid={aid}&mode={mode}",local,port))
     return r.text
 
-# %% ../nbs/00_core.ipynb 28
+# %% ../nbs/00_core.ipynb 26
 @call_parse
 def download(
     path:Path=Path('.'),                # Path to project
