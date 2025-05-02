@@ -4,8 +4,8 @@
 
 # %% auto 0
 __all__ = ['PLASH_CONFIG_HOME', 'pat', 'stop', 'start', 'log_modes', 'get_client', 'mk_auth_req', 'get_app_id', 'endpoint',
-           'is_included', 'poll_cookies', 'login', 'prepare_archive', 'deploy', 'view', 'delete', 'endpoint_func',
-           'logs', 'download']
+           'is_included', 'poll_cookies', 'login', 'PlashAppError', 'create_tar_archive', 'deploy', 'view', 'delete',
+           'endpoint_func', 'logs', 'download']
 
 # %% ../nbs/00_core.ipynb 2
 from fastcore.all import *
@@ -99,18 +99,16 @@ def _deps(script: bytes | str) -> dict | None:
     else: return None
 
 # %% ../nbs/00_core.ipynb 14
-def prepare_archive(path: Path) -> tuple[io.BytesIO, int]:
-    """Validates app structure and creates a tar archive."""
+class PlashAppError(Exception): pass
+
+def create_tar_archive(path:Path) -> tuple[io.BytesIO, int]:
+    'Validates app structure and creates a tar archive.'
     if not (path / 'main.py').exists():
-        print('ERROR: Supplied directory is invalid. A Plash app requires a main.py file.')
-        print(f'Invalid path: {path}')
-        sys.exit(1)
+        raise PlashAppError('Supplied directory is invalid. A Plash app requires a main.py file.')
         
     deps = _deps((path / 'main.py').read_text())
-    if not (bool(deps) ^ (path/"requirements.txt").exists()):
-        print('ERROR: A Plash app should contain either a requirements.txt file or inline dependencies (see PEP723), but not both.')
-        print(f'Invalid path: {path}')
-        sys.exit(1)
+    if not (bool(deps) ^ (path/"requirements.txt").exists()): 
+        raise PlashAppError('A Plash app should contain either a requirements.txt file or inline dependencies (see PEP723), but not both.')
     
     tarz = io.BytesIO()
     files = L(path if path.is_file() else Path(path).iterdir()).filter(is_included)
@@ -132,10 +130,12 @@ def deploy(
     port:int=5002):      # Port for local dev
     '🚀 Ship your app to production'
     print('Initializing deployment...')
-    if app_id == '': print('App ID cannot be an empty string'); return
-    if not path.is_dir(): print("Path should point to the project directory"); return
-        
-    tarz, _ = prepare_archive(path)
+    if app_id == '': print('Error: App ID cannot be an empty string'); return
+    if not path.is_dir(): print("Error: Path should point to the project directory"); return
+
+    try: tarz, num_files = create_tar_archive(path)
+    except PlashAppError as e: print(f"Error: {str(e)}\nInvalid path: {path}"); return
+    
     plash_app = path / '.plash'
     if not app_id and not plash_app.exists():
         plash_app.write_text(f'export PLASH_APP_ID=fasthtml-app-{str(uuid4())[:8]}')
@@ -146,9 +146,7 @@ def deploy(
         print('✅ Upload complete! Your app is currently being built.')
         if local: print(f'It will be live at http://{aid}.localhost')
         else: print(f'It will be live at https://{aid}.pla.sh')
-    else:
-        print(f'Failure {resp.status_code}')
-        print(f'Failure {resp.text}')
+    else: print(f'Failure: {resp.status_code}\n{resp.text}')
 
 # %% ../nbs/00_core.ipynb 17
 @call_parse
