@@ -4,8 +4,8 @@
 
 # %% auto 0
 __all__ = ['PLASH_CONFIG_HOME', 'pat', 'stop', 'start', 'log_modes', 'get_client', 'mk_auth_req', 'get_app_id', 'endpoint',
-           'is_included', 'validate_app', 'poll_cookies', 'login', 'create_tar_archive', 'deploy', 'view', 'delete',
-           'endpoint_func', 'logs', 'download']
+           'is_included', 'poll_cookies', 'login', 'PlashError', 'validate_app', 'create_tar_archive', 'deploy', 'view',
+           'delete', 'endpoint_func', 'logs', 'download']
 
 # %% ../nbs/00_core.ipynb 2
 from fastcore.all import *
@@ -55,16 +55,7 @@ def is_included(path):
                 '.vscode', '.idea', '.sesskey'}
     return not any(p in excludes for p in path.parts)
 
-# %% ../nbs/00_core.ipynb 10
-def validate_app(path):
-    "Validates that the app in the directory or script `path` is deployable as a Plash app"
-    print("Analyzing project structure...")
-    if path.name != 'main.py' and not (path / "main.py").exists():
-        print('[red bold]ERROR: Supplied directory or script is invalid. A Plash app requires a main.py file.[/red bold]')
-        print(f'Invalid path: [bold]{path}[/bold]')
-        sys.exit(1)
-
-# %% ../nbs/00_core.ipynb 12
+# %% ../nbs/00_core.ipynb 11
 def poll_cookies(paircode, local, port=None, interval=1, timeout=180):
     "Poll server for token until received or timeout"
     start = time()
@@ -96,7 +87,7 @@ def login(
 pat = r'(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$'
 
 def _deps(script: bytes | str) -> dict | None:
-    '''Get the dependencies from the script. From: https://peps.python.org/pep-0723/'''
+    'Get the dependencies from the script. From: https://peps.python.org/pep-0723/'
     name = 'script'
     if isinstance(script, bytes): script = script.decode('utf-8')
     matches = L(re.finditer(pat, script)).filter(lambda m: m.group('type') == name)
@@ -107,23 +98,35 @@ def _deps(script: bytes | str) -> dict | None:
         return '\n'.join(tomllib.loads(content)['dependencies'])
     else: return None
 
-# %% ../nbs/00_core.ipynb 15
-def create_tar_archive(path)->io.BytesIO: # Buffer of tar directory
+# %% ../nbs/00_core.ipynb 17
+class PlashError(Exception): pass
+
+def validate_app(path):
+    "Validates that the app in the directory or script `path` is deployable as a Plash app"
+    if not (path / 'main.py').exists():
+        raise PlashError('A Plash app requires a main.py file.')
+    deps = _deps((path / 'main.py').read_text())
+    if not (bool(deps) ^ (path/"requirements.txt").exists()): 
+        raise PlashError('A Plash app should contain either a requirements.txt file or inline dependencies (see PEP723), but not both.')
+    deps = deps if deps else (path/"requirements.txt").read_text()
+    if not any(d.startswith("python-fasthtml") for d in deps.splitlines()): 
+        raise PlashError("A Plash app should have `python-fasthtml` as one of its requirements.")
+
+# %% ../nbs/00_core.ipynb 22
+def create_tar_archive(path:Path) -> tuple[io.BytesIO, int]:
     "Creates a tar archive of a directory, excluding files based on is_included"
     tarz = io.BytesIO()
     files = L(path if path.is_file() else Path(path).iterdir()).filter(is_included)
-
     with tarfile.open(fileobj=tarz, mode='w:gz') as tar:
         for f in files: tar.add(f, arcname=f.name)
-        if path.is_file():
-            if deps := _deps(path.read_bytes()):
-                info = tarfile.TarInfo('requirements.txt')
-                info.size = len(deps)
-                tar.addfile(info, io.BytesIO(deps.encode('utf-8')))
+        if deps:=_deps((path / 'main.py').read_bytes()):
+            info = tarfile.TarInfo('requirements.txt')
+            info.size = len(deps)
+            tar.addfile(info, io.BytesIO(deps.encode('utf-8')))
     tarz.seek(0)
     return tarz, len(files)
 
-# %% ../nbs/00_core.ipynb 16
+# %% ../nbs/00_core.ipynb 23
 @call_parse
 def deploy(
     path:Path=Path('.'), # Path to project
@@ -132,26 +135,25 @@ def deploy(
     port:int=5002):      # Port for local dev
     '🚀 Ship your app to production'
     print('Initializing deployment...')
-    if app_id == '': print('App ID cannot be an empty string'); return
-    validate_app(path)
-    tarz, _ = create_tar_archive(path)
+    if app_id == '': print('Error: App ID cannot be an empty string'); return
+    if not path.is_dir(): print("Error: Path should point to the project directory"); return
+    try: validate_app(path)
+    except PlashAppError as e: print(f"Error: {str(e)}\nInvalid path: {path}"); return
     
-    if path.is_file(): path = path.parent
     plash_app = path / '.plash'
     if not app_id and not plash_app.exists():
         plash_app.write_text(f'export PLASH_APP_ID=fasthtml-app-{str(uuid4())[:8]}')
     aid = app_id or parse_env(fn=plash_app)['PLASH_APP_ID']
     
+    tarz, _ = create_tar_archive(path)
     resp = mk_auth_req(endpoint("/upload",local,port), "post", files={'file': tarz}, timeout=300.0, data={'aid': aid})
     if resp.status_code == 200:
         print('✅ Upload complete! Your app is currently being built.')
         if local: print(f'It will be live at http://{aid}.localhost')
         else: print(f'It will be live at https://{aid}.pla.sh')
-    else:
-        print(f'Failure {resp.status_code}')
-        print(f'Failure {resp.text}')
+    else: print(f'Failure: {resp.status_code}\n{resp.text}')
 
-# %% ../nbs/00_core.ipynb 18
+# %% ../nbs/00_core.ipynb 25
 @call_parse
 def view(
     path:Path=Path('.'), # Path to project
@@ -163,7 +165,7 @@ def view(
     print(f"Opening browser to view app :\n{url}\n")
     webbrowser.open(url)
 
-# %% ../nbs/00_core.ipynb 20
+# %% ../nbs/00_core.ipynb 27
 @call_parse
 def delete(
     path:Path=Path('.'), # Path to project
@@ -182,7 +184,7 @@ def delete(
     r = mk_auth_req(endpoint(f"/delete?aid={aid}",local,port), "delete")
     return r.text
 
-# %% ../nbs/00_core.ipynb 22
+# %% ../nbs/00_core.ipynb 29
 def endpoint_func(endpoint_name):
     'Creates a function for a specific API endpoint'
     @call_parse
@@ -204,10 +206,10 @@ def endpoint_func(endpoint_name):
 stop = endpoint_func('/stop')
 start = endpoint_func('/start')
 
-# %% ../nbs/00_core.ipynb 24
+# %% ../nbs/00_core.ipynb 31
 log_modes = str_enum('log_modes', 'build', 'app')
 
-# %% ../nbs/00_core.ipynb 25
+# %% ../nbs/00_core.ipynb 32
 @call_parse
 def logs(
     path:Path=Path('.'),    # Path to project
@@ -233,7 +235,7 @@ def logs(
     r = mk_auth_req(endpoint(f"/logs?aid={aid}&mode={mode}",local,port))
     return r.text
 
-# %% ../nbs/00_core.ipynb 27
+# %% ../nbs/00_core.ipynb 34
 @call_parse
 def download(
     path:Path=Path('.'),                # Path to project
