@@ -108,9 +108,6 @@ def validate_app(path):
     deps = _deps((path / 'main.py').read_text())
     if not (bool(deps) ^ (path/"requirements.txt").exists()): 
         raise PlashError('A Plash app should contain either a requirements.txt file or inline dependencies (see PEP723), but not both.')
-    deps = deps if deps else (path/"requirements.txt").read_text()
-    if not any(d.startswith("python-fasthtml") for d in deps.splitlines()): 
-        raise PlashError("A Plash app should have `python-fasthtml` as one of its requirements.")
 
 # %% ../nbs/00_core.ipynb 22
 def create_tar_archive(path:Path) -> tuple[io.BytesIO, int]:
