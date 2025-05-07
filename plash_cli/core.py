@@ -17,10 +17,10 @@ from time import time, sleep
 
 import io, re, sys, tarfile, tomllib
 
-# %% ../nbs/00_core.ipynb 4
+# %% ../nbs/00_core.ipynb 5
 PLASH_CONFIG_HOME = xdg_config_home() / 'plash_config.json'
 
-# %% ../nbs/00_core.ipynb 5
+# %% ../nbs/00_core.ipynb 6
 def get_client(cookie_file):
     client = httpx.Client()
     if not cookie_file.exists():
@@ -30,22 +30,22 @@ def get_client(cookie_file):
     client.headers.update({'X-PLASH': 'true'})
     return client
 
-# %% ../nbs/00_core.ipynb 6
+# %% ../nbs/00_core.ipynb 7
 def mk_auth_req(url:str, method:str='get', **kwargs): return getattr(get_client(PLASH_CONFIG_HOME), method)(url, **kwargs)
 
-# %% ../nbs/00_core.ipynb 7
+# %% ../nbs/00_core.ipynb 8
 def get_app_id(path:Path):
     plash_app = Path(path) / '.plash'
     if not plash_app.exists(): raise FileNotFoundError(f"File not found: {plash_app=}")
     return parse_env(fn=plash_app)['PLASH_APP_ID']
 
-# %% ../nbs/00_core.ipynb 8
+# %% ../nbs/00_core.ipynb 9
 def endpoint(path, local, port=None):
     p = "http" if local else "https"
     d = f"localhost:{port}" if local else "pla.sh"
     return f"{p}://{d}{path}"
 
-# %% ../nbs/00_core.ipynb 9
+# %% ../nbs/00_core.ipynb 10
 def is_included(path):
     "Returns True if path should be included in deployment"
     if path.name.startswith('.'): return False
@@ -55,7 +55,7 @@ def is_included(path):
                 '.vscode', '.idea', '.sesskey'}
     return not any(p in excludes for p in path.parts)
 
-# %% ../nbs/00_core.ipynb 11
+# %% ../nbs/00_core.ipynb 12
 def poll_cookies(paircode, local, port=None, interval=1, timeout=180):
     "Poll server for token until received or timeout"
     start = time()
@@ -83,7 +83,7 @@ def login(
         print(f"Authentication successful! Config saved to {PLASH_CONFIG_HOME}")
     else: print("Authentication timed out.")
 
-# %% ../nbs/00_core.ipynb 14
+# %% ../nbs/00_core.ipynb 15
 pat = r'(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$'
 
 def _deps(script: bytes | str) -> dict | None:
@@ -98,7 +98,7 @@ def _deps(script: bytes | str) -> dict | None:
         return '\n'.join(tomllib.loads(content)['dependencies'])
     else: return None
 
-# %% ../nbs/00_core.ipynb 17
+# %% ../nbs/00_core.ipynb 18
 class PlashError(Exception): pass
 
 def validate_app(path):
@@ -106,10 +106,10 @@ def validate_app(path):
     if not (path / 'main.py').exists():
         raise PlashError('A Plash app requires a main.py file.')
     deps = _deps((path / 'main.py').read_text())
-    if not (bool(deps) ^ (path/"requirements.txt").exists()): 
-        raise PlashError('A Plash app should contain either a requirements.txt file or inline dependencies (see PEP723), but not both.')
+    if  deps and (path/"requirements.txt").exists(): 
+        raise PlashError('A Plash app should not contain both a requirements.txt file and inline dependencies (see PEP723).')
 
-# %% ../nbs/00_core.ipynb 22
+# %% ../nbs/00_core.ipynb 23
 def create_tar_archive(path:Path) -> tuple[io.BytesIO, int]:
     "Creates a tar archive of a directory, excluding files based on is_included"
     tarz = io.BytesIO()
@@ -123,7 +123,7 @@ def create_tar_archive(path:Path) -> tuple[io.BytesIO, int]:
     tarz.seek(0)
     return tarz, len(files)
 
-# %% ../nbs/00_core.ipynb 23
+# %% ../nbs/00_core.ipynb 24
 @call_parse
 def deploy(
     path:Path=Path('.'), # Path to project
@@ -150,7 +150,7 @@ def deploy(
         else: print(f'It will be live at https://{aid}.pla.sh')
     else: print(f'Failure: {resp.status_code}\n{resp.text}')
 
-# %% ../nbs/00_core.ipynb 25
+# %% ../nbs/00_core.ipynb 26
 @call_parse
 def view(
     path:Path=Path('.'), # Path to project
@@ -162,7 +162,7 @@ def view(
     print(f"Opening browser to view app :\n{url}\n")
     webbrowser.open(url)
 
-# %% ../nbs/00_core.ipynb 27
+# %% ../nbs/00_core.ipynb 28
 @call_parse
 def delete(
     path:Path=Path('.'), # Path to project
@@ -181,7 +181,7 @@ def delete(
     r = mk_auth_req(endpoint(f"/delete?aid={aid}",local,port), "delete")
     return r.text
 
-# %% ../nbs/00_core.ipynb 29
+# %% ../nbs/00_core.ipynb 30
 def endpoint_func(endpoint_name):
     'Creates a function for a specific API endpoint'
     @call_parse
@@ -203,10 +203,10 @@ def endpoint_func(endpoint_name):
 stop = endpoint_func('/stop')
 start = endpoint_func('/start')
 
-# %% ../nbs/00_core.ipynb 31
+# %% ../nbs/00_core.ipynb 32
 log_modes = str_enum('log_modes', 'build', 'app')
 
-# %% ../nbs/00_core.ipynb 32
+# %% ../nbs/00_core.ipynb 33
 @call_parse
 def logs(
     path:Path=Path('.'),    # Path to project
@@ -232,7 +232,7 @@ def logs(
     r = mk_auth_req(endpoint(f"/logs?aid={aid}&mode={mode}",local,port))
     return r.text
 
-# %% ../nbs/00_core.ipynb 34
+# %% ../nbs/00_core.ipynb 35
 @call_parse
 def download(
     path:Path=Path('.'),                # Path to project
