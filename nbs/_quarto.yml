@@ -1,22 +1,49 @@
 project:
   type: website
+  preview:
+    navigate: false
+    port: 3000
 
 format:
   html:
-    theme: cosmo
+    theme:
+      - cosmo
+      - custom.scss
     css: styles.css
     toc: true
     keep-md: true
   commonmark: default
 
 website:
-  twitter-card: true
+  favicon: favicon.ico
   open-graph: true
   repo-actions: [issue]
   navbar:
+    title: false
+    logo: "logo.svg"
     background: primary
     search: true
+    left:
+      - text: "Home"
+        href: https://pla.sh
+      - text: "Learn"
+        href: https://plas.sh/about
+    right:
+      - icon: github
+        href: "https://github.com/answerdotai/plash_cli"
+      - icon: twitter
+        href: https://x.com/answerdotai
+        aria-label: Answer.ai Twitter
   sidebar:
     style: floating
+    contents:
+      - text: "Get Started"
+        href: index.ipynb
+      - section: Tutorials
+        contents: tutorials/*
+      - section: Explanations
+        contents: explains/*
+      - section: Reference
+        contents: 00_core*
 
-metadata-files: [nbdev.yml, sidebar.yml]
+metadata-files: [nbdev.yml]
