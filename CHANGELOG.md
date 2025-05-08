@@ -2,6 +2,13 @@
 
 <!-- do not remove -->
 
+## 0.1.0
+
+### New Features
+
+- Streamline using cli with different plash server host names ([#20](https://github.com/AnswerDotAI/plash_cli/issues/20))
+
+
 ## 0.0.5
 
 ### New Features
