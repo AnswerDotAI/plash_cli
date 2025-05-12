@@ -11,7 +11,7 @@ website:
       - section: tutorials
         contents:
           - tutorials/01-environment-variables.qmd
-          - tutorials/02-inline-deps.ipynb
+          - tutorials/02-inline-deps.qmd
           - tutorials/03-add-non-python-deps.ipynb
           - tutorials/04-dealing-with-databases.ipynb
           - tutorials/05-static-sites.ipynb
