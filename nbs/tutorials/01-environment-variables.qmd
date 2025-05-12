@@ -1,0 +1,122 @@
+# Environment Variables in Plash
+
+> Use environment variables to configure your app without changing code. Perfect for secrets, API keys, and other configuration values.
+
+## What are Environment Variables in Plash
+
+Environment variables allow you to store configuration and sensitive information outside your codebase, making your application more secure and flexible across different environments. Plash provides a simple way to set and use environment variables in your deployed applications.
+
+## Environment Variables Tutorial
+
+In this tutorial, you'll learn how to use environment variables in your Plash app.
+
+**Objectives:**
+
+- [ ] Create a plash.env file to define environment variables
+- [ ] Build a FastHTML app that displays environment variables
+- [ ] Deploy your app to see the variables in action
+
+**Prerequisites:**
+
+* A registered account at https://pla.sh
+* The Plash CLI installed (run `pip install plash-cli` if needed)
+* Logged in via the CLI (run `plash_login` if needed)
+
+### Create a project directory
+
+First, create a directory for your project named `environment-variables-tutorial` and navigate into it.
+
+### Create your environment variable file
+
+Create a file named `plash.env` in your project directory with the following content:
+
+```
+export APP_NAME="My Environment Variables Demo"
+export SECRET_MESSAGE="Hello from the environment!"
+```
+
+✅ Complete: Create a plash.env file to define environment variables
+
+### Create your FastHTML app
+
+Now, create a `main.py` file for your FastHTML application with the following code:
+
+```python
+from fasthtml.common import *
+import os
+
+app, rt = fast_app()
+
+@rt
+def index():
+    # Access environment variables using os.environ
+    app_name = os.environ.get('APP_NAME', 'Default App Name')
+    secret_message = os.environ.get('SECRET_MESSAGE', 'No secret found')
+    
+    environment = "Production" if os.environ.get('PLASH_PRODUCTION', None) else "Development"
+
+    return Div(
+        H1(app_name),
+        P(f"Secret message: {secret_message}"),
+        P(f"Running in: {environment}"),
+        style="font-family: system-ui; max-width: 600px; margin: 0 auto; padding: 2rem;"
+    )
+
+serve()
+```
+
+Also create a `requirements.txt` file with a single entry:
+
+```
+python-fasthtml
+```
+
+✅ Complete: Build a FastHTML app that displays environment variables
+
+### Deploy your app
+
+Now deploy your app with:
+
+```sh
+plash_deploy
+```
+
+You'll see:
+```
+Initializing deployment...
+✅ Upload complete! Your app is currently being built.
+It will be live at https://<your-app-id>.pla.sh
+```
+
+You can check your app's build logs:
+
+```sh
+plash_logs --tail
+```
+
+✅ Complete: Deploy your app
+
+### View your app
+
+To view your deployed app, run:
+
+```sh
+plash_view
+```
+
+Your browser will open and show the app displaying:
+- The APP_NAME environment variable as the heading
+- The SECRET_MESSAGE value
+- Whether it's running in production or development environment
+
+**🎉 Complete: Environment Variables Tutorial**
+
+## Using Environment Variables in Your Own Apps
+
+You can use this pattern in any of your Plash apps. Simply:
+
+1. Create a `plash.env` file in your project root
+2. Add your environment variables using `export KEY=VALUE` format
+3. Access them in your app with `os.environ.get('KEY')`
+
+Remember that Plash automatically sets `PLASH_PRODUCTION=1` when your app is running in a Plash deployment, which you can use to detect whether your app is in production or development.
