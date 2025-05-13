@@ -27,7 +27,7 @@ website:
       - text: "Home"
         href: https://pla.sh
       - text: "Learn"
-        href: https://plas.sh/about
+        href: https://docs.pla.sh
     right:
       - icon: github
         href: "https://github.com/answerdotai/plash_cli"
@@ -44,8 +44,6 @@ website:
       - section: Explanations
         contents: explains/*
       - section: Reference
-        contents: 
-          - reference/00_cli.ipynb
-          - 00_core.ipynb
+        contents: reference/*
 
 metadata-files: [nbdev.yml]
