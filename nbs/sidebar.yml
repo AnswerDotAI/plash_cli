@@ -6,17 +6,9 @@ website:
       - section: explains
         contents:
           - explains/image-build-caching.ipynb
-          - explains/tour-of-cli.ipynb
-          - explains/tour-of-webui.ipynb
-      - section: tutorials
+      - section: how_to
         contents:
-          - tutorials/01-environment-variables.qmd
-          - tutorials/02-inline-deps.qmd
-          - tutorials/03-add-non-python-deps.ipynb
-          - tutorials/04-dealing-with-databases.ipynb
-          - tutorials/05-static-sites.ipynb
-          - tutorials/06-non-fasthtml-apps.ipynb
-          - tutorials/07-deploy-with-github-actions.ipynb
-          - tutorials/08-oauth.ipynb
-          - tutorials/09-download-your-app.ipynb
-          - tutorials/10-custom-domains.ipynb
+          - "how_to/01-\u0430dd-environment-variables.ipynb"
+      - section: reference
+        contents:
+          - reference/00_cli.ipynb

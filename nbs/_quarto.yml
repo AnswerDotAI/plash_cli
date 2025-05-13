@@ -39,11 +39,13 @@ website:
     contents:
       - text: "Get Started"
         href: index.ipynb
-      - section: Tutorials
-        contents: tutorials/*
+      - section: "How To"
+        contents: how_to/*
       - section: Explanations
         contents: explains/*
       - section: Reference
-        contents: 00_core*
+        contents: 
+          - reference/00_cli.ipynb
+          - 00_core.ipynb
 
 metadata-files: [nbdev.yml]
