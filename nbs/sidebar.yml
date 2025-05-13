@@ -5,10 +5,10 @@ website:
       - 00_core.ipynb
       - section: explains
         contents:
-          - explains/image-build-caching.ipynb
+          - explains/00_docker_caching.ipynb
       - section: how_to
         contents:
-          - "how_to/01-\u0430dd-environment-variables.ipynb"
+          - how_to/00_env_vars.ipynb
       - section: reference
         contents:
           - reference/00_cli.ipynb
