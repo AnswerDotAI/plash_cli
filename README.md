@@ -128,7 +128,7 @@ plash_deploy
 
     Initializing deployment...
     ✅ Upload complete! Your app is currently being built.
-    It will be live at https://plash-tutorial-hello-world.pla.sh
+    It will be live at https://example-app.pla.sh
 
 **Note:** You’ll see a different url that has been randomly generated
 for your app.
@@ -147,7 +147,7 @@ plash_view
 ```
 
     Opening browser to view app :
-    https://plash-tutorial-hello-world.pla.sh
+    https://example-app.pla.sh
 
 When you visit that page you should see “Hello, World!”
 
@@ -155,10 +155,5 @@ When you visit that page you should see “Hello, World!”
 
 ## Where to go from here
 
-Learn more about what Plash has to offer in the how to guides.
-
-For example:
-
-- How to add a custom domain name
-- How to view your app logs
-- How to add environment variables
+Learn more about what Plash has to offer in the rest of the docs at:
+https://docs.pla.sh
