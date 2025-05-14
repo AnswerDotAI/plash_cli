@@ -1,11 +1,17 @@
-import httpx
-import dotenv
+import httpx, dotenv, json, base64
 import jwt
 
 from typing import Tuple
 
 ACSRF_KEY = 'acsrf'
 APP_STATE_KEY = 'app_state'
+
+PLASH_SERVER_ENDPPOINT_PATH = '/api/appauth'
+
+PLASH_SERVER_ENDPPOINT_URL = "https://auth.plash.app" + PLASH_SERVER_ENDPPOINT_PATH
+IS_DEV = True:
+if IS_DEV:
+    PLASH_SERVER_ENDPPOINT_URL = "http://localhost:5002" + PLASH_SERVER_ENDPPOINT_PATH
 
 def _plash_auth_url(
         plash_app_id:str,
@@ -18,21 +24,25 @@ def _plash_auth_url(
 
     The kv pair must be placed in the user session, for login to work.
     """
-    # prove to the plash server which app we are
-    header = {"Basic Authentication":
-              f"{plash_app_id}:{plash_app_secret}"}
-    payload = {"plash_app_id":plash_app_id,
-               APP_STATE_KEY:app_state,
-               "email_pat":required_email_pattern,
-               "hd_pat":required_hd_pattern}
-    plash_server_url = "https://plash.com/api/"
-    res = httpx.post(plash_server_url,header, payload)
-    def parse_plash_server_result(r) -> Tuple[str,dict[str:str]]:
-        return ("",{ACSRF_KEY:"123"})
-    if res:
-        return parse_plash_server_result(res)
-    else:
-        print("error")
+    payload = {
+        "plash_app_id": plash_app_id, # Can be useful even if in auth header
+        "app_state_b64": base64.b64encode(app_state).decode('utf-8'),
+        "required_email_pattern": required_email_pattern,
+        "required_hd_pattern": required_hd_pattern,
+    }
+    try:
+        with httpx.Client() as client:
+            response = client.post(
+                PLASH_SERVER_ENDPPOINT_URL,
+                json=payload,
+                auth=(plash_app_id, plash_app_secret)
+            )
+            response.raise_for_status() # Raises HTTPStatusError for 4xx/5xx
+            data = response.json()
+            # Assuming endpoint returns e.g. {"url_to_follow": "...", "params_for_url": {...}}
+            return data.get("url_to_follow"), data.get("params_for_url", {})
+    except (httpx.HTTPError, json.JSONDecodeError) as e:
+        print(f"Auth request failed: {e}")
         return None
 
 def make_plash_signin_url(
@@ -70,7 +80,7 @@ def make_plash_signin_url_new(
     if not retval:
         print("error")
         return None
-    # X. Update the plash developer app's session with a key-value pair
+    # 4+X. Update the plash developer app's session with a key-value pair
     #    that the plash auth server will use to identify the associated reply
     #    from Google's auth servers.
     (url,acsrf_kv) = retval
