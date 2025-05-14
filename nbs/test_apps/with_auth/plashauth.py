@@ -1,18 +1,19 @@
-import httpx, dotenv, json, base64
+import httpx, dotenv, json, base64,os
+import logging as log
 import jwt
-
 from typing import Tuple
 
-ACSRF_KEY = 'acsrf'
-APP_STATE_KEY = 'app_state'
+# Plash Auth Client library, for use of Plash Apps
 
-PLASH_SERVER_ENDPPOINT_PATH = '/api/appauth'
+dotenv.load_dotenv()
+log.basicConfig(level=log.INFO)
 
-PLASH_SERVER_ENDPPOINT_URL = "https://auth.plash.app" + PLASH_SERVER_ENDPPOINT_PATH
-IS_DEV = True:
-if IS_DEV:
-    PLASH_SERVER_ENDPPOINT_URL = "http://localhost:5002" + PLASH_SERVER_ENDPPOINT_PATH
+IS_DEV=True
+PLASH_AUTH_SERVER_PREFIX = 'http://localhost:5002' if IS_DEV else 'https://plash.app'
+PLASH_AUTH_SERVER_PATH = '/api/appauth'
+PLASH_AUTH_SERVER_URL = PLASH_AUTH_SERVER_PREFIX + PLASH_AUTH_SERVER_PATH
 
+# 4a. http wrapping of call to Plash Auth Server
 def _plash_auth_url(
         plash_app_id:str,
         plash_app_secret:str,   
@@ -25,7 +26,7 @@ def _plash_auth_url(
     The kv pair must be placed in the user session, for login to work.
     """
     payload = {
-        "plash_app_id": plash_app_id, # Can be useful even if in auth header
+        "plash_app_id": plash_app_id,
         "app_state_b64": base64.b64encode(app_state).decode('utf-8'),
         "required_email_pattern": required_email_pattern,
         "required_hd_pattern": required_hd_pattern,
@@ -33,7 +34,7 @@ def _plash_auth_url(
     try:
         with httpx.Client() as client:
             response = client.post(
-                PLASH_SERVER_ENDPPOINT_URL,
+                PLASH_AUTH_SERVER_URL,
                 json=payload,
                 auth=(plash_app_id, plash_app_secret)
             )
@@ -51,15 +52,6 @@ def make_plash_signin_url(
         required_email_pattern:str|None=None,
         required_hd_pattern:str|None=None
 ) -> str | None:
-    return "URL will go here"
-
-
-def make_plash_signin_url_new(
-        session:dict,
-        app_state:bytes=b'',
-        required_email_pattern:str|None=None,
-        required_hd_pattern:str|None=None
-) -> str | None:
     """Returns a Plash sign-in link.
 
     A Plash Sign-In link is a "Sign-In with Google" link, constructed
@@ -67,10 +59,11 @@ def make_plash_signin_url_new(
     user's numerical Google Id (their OpenID "sub" claim), to the
     Plash App which made the link.
     """
+    log.info("ENTRY: make_plash_signin_url")
     # 3. Plash client library gathers info to authenticate itself in 
     #    comunication with the plash auth server
-    plash_id     = dotenv.get('plash_id')
-    plash_secret = dotenv.get('plash_secret')
+    plash_id     = os.getenv('plash_id','dummy_plash_id')
+    plash_secret = os.getenv('plash_secret','dummy_plash_sceret')
     # 4. Get the plash sign-in link from the plash auth server
     retval = _plash_auth_url(plash_id,
                              plash_secret,

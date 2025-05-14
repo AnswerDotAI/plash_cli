@@ -3,6 +3,8 @@ from fasthtml.common import P,A,H1,fast_app,serve
 import plashauth
 from plashauth import make_plash_signin_url, goog_id_from_signin_reply
 
+# Plash App using Plash Auth
+
 app, rt = fast_app()
 
 # 1. An end-user arrives at home page of a third-party plash deployed app (plash app)
@@ -16,7 +18,7 @@ def index(session):
     # 3. (plash auth library creates a URL)
     url = make_plash_signin_url(session)
     #
-    return P("Signin time", A("Sign in with Google",src=url))
+    return P(f"Sign-in URL: {url}") #, A("Sign in with Google",src=url))
 
 @rt
 def plash_signin_completed(signin_reply:str):
@@ -33,8 +35,5 @@ def handle_signin(uid:str):
     print(f"user {uid} is signed in")
     # create or lookup user
 
-@rt
-def index():
-    return H1(f"Hello world! {plashauth.foo()=}")
 
 serve()
