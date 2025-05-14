@@ -5,16 +5,24 @@ from plashauth import make_plash_signin_url, goog_id_from_signin_reply
 
 app, rt = fast_app()
 
+# 1. An end-user arrives at home page of a third-party plash deployed app (plash app)
 @rt
 def index(session):
     "Route called by browsers to get a signin link"
+    # 2. plash app asks plash auth client library for a plash sign-in link,
+    #   passing in the session object, which the plash auth library
+    #   will use to track state across the sign-in-process. 
+
+    # 3. (plash auth library creates a URL)
     url = make_plash_signin_url(session)
+    #
     return P("Signin time", A("Sign in with Google",src=url))
 
 @rt
-def signin_completed(signin_reply:str):
+def plash_signin_completed(signin_reply:str):
     "Reply by the plash service to report signin results"
-    if (uid := goog_id_from_signin_reply(signin_reply)) is None:
+    uid = goog_id_from_signin_reply(signin_reply)
+    if uid is None:
         print(f"This is not a valid reply from Plash server")
         return P("Login failed")
     else:

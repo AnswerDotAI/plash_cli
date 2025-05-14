@@ -57,8 +57,11 @@ def make_plash_signin_url_new(
     user's numerical Google Id (their OpenID "sub" claim), to the
     Plash App which made the link.
     """
+    # 3. Plash client library gathers info to authenticate itself in 
+    #    comunication with the plash auth server
     plash_id     = dotenv.get('plash_id')
     plash_secret = dotenv.get('plash_secret')
+    # 4. Get the plash sign-in link from the plash auth server
     retval = _plash_auth_url(plash_id,
                              plash_secret,
                              app_state,
@@ -67,8 +70,12 @@ def make_plash_signin_url_new(
     if not retval:
         print("error")
         return None
+    # X. Update the plash developer app's session with a key-value pair
+    #    that the plash auth server will use to identify the associated reply
+    #    from Google's auth servers.
     (url,acsrf_kv) = retval
     session.update(acsrf_kv)
+    # X. Return the plash sign-in link to the plash app
     return url
 
 class _PlashReply:
