@@ -1,0 +1,4 @@
+python-fasthtml
+httpx
+python-dotenv
+PyJWT
