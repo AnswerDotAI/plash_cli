@@ -210,6 +210,7 @@ def logs(
                 if r.status_code == 200:
                     print(r.text[len(text):], end='') # Only print updates
                     text = r.text
+                    if mode == 'build' and 'Build End Time:' in r.text: break
                     sleep(1)
                 else:
                     print(f"Error: {r.status_code}")
