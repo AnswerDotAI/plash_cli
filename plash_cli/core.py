@@ -14,6 +14,7 @@ import secrets, webbrowser, json, httpx, io, tarfile
 from pathlib import Path
 from uuid import uuid4
 from time import time, sleep
+from datetime import datetime
 import threading
 
 import io, os, re, tarfile, tomllib
@@ -126,14 +127,39 @@ log_modes = str_enum('log_modes', 'build', 'app')
 
 # %% ../nbs/00_core.ipynb 25
 def _logs_during_deploy(
+    aid:str, # App ID that will be used as the subdomain in plash
     path:Path, # Path to project
-    mode:str='build', # 'build' or 'run'
-    tail:bool=True): # We always want to tail the logs
-    # Give the server time to start
-    sleep(1) 
-    # Unwrap the logs function to avoid the call_parse decorator so it can be wrapped in a thread
-    log_thread = threading.Thread(target=logs.__wrapped__, kwargs=dict(path=path, mode='build', tail=True))
-    log_thread.start()
+    mode:str='build'): # 'build' or 'run'
+    "Run the logs function in tail mode, waiting for the build to finish"
+    # Get the current Build End time
+
+    starttime = 0
+    r = mk_auth_req(endpoint(rt=f"/logs?aid={aid}&mode={mode}"))
+    for line in reversed(r.text.splitlines()):
+        print(line)
+        if line.strip().startswith('Build End Time:'):
+            dt_obj = line.strip().replace('Build End Time:', '').strip()
+            starttime = datetime.strptime(dt_obj, "%Y-%m-%d %H:%M:%S.%f").timestamp()
+
+    print(f'Current build end time:', starttime)
+    # Look for a build start time that is greater than the last build end time
+    while True:
+        print('Waiting for build to start...')
+        r = mk_auth_req(endpoint(rt=f"/logs?aid={aid}&mode={mode}"))
+        if r.status_code != 200: print(f"Error: {r.status_code}")
+        for line in reversed(r.text.splitlines()):
+            endtime = 0
+            if line.strip().startswith('Build Start Time:'):
+                dt_obj = line.strip().replace('Build Start Time:', '').strip()
+                endtime = datetime.strptime(dt_obj, "%Y-%m-%d %H:%M:%S.%f").timestamp()
+                if endtime > starttime:
+                    break
+            print(f'Current build time:', endtime)
+        sleep(0.3)
+    
+    print('Tailing current logs...')
+    # Run the logs function in tail mode uncaptured for the user to see
+    logs.__wrapped__(path=path, mode=mode, tail=True)
 
 # %% ../nbs/00_core.ipynb 26
 @call_parse
@@ -153,12 +179,17 @@ def deploy(
     aid = app_id or parse_env(fn=plash_app)['PLASH_APP_ID']
     
     tarz, _ = create_tar_archive(path)
+
+    print('Start logging...')
+    logging = threading.Thread(target=_logs_during_deploy, args=(aid, path, 'build'))
+    logging.start()
+
+    print('Uploading...')
     resp = mk_auth_req(endpoint(rt="/upload"), "post", files={'file': tarz}, timeout=300.0, data={'aid': aid})
     if resp.status_code == 200:
         print('✅ Upload complete! Your app is currently being built.')
         print(f'It will be live at {endpoint(sub=aid)}')
     else: print(f'Failure: {resp.status_code}\n{resp.text}')
-    _logs_during_deploy(path=path, mode='build', tail=True)
 
 # %% ../nbs/00_core.ipynb 28
 @call_parse
