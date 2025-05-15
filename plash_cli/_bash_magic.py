@@ -1,6 +1,5 @@
 from IPython.core.magic import register_line_cell_magic
 from bash_kernel.kernel import BashKernel
-from functools import partial
 import re
 from pathlib import Path
 
@@ -10,7 +9,6 @@ ip = get_ipython()
 @register_line_cell_magic
 def bash(line, cell=None): 
     code = f'{line}\n{cell}' if cell else line
-    # Get IPython shell instance
     
     # Find all $`varname` patterns and interpolate from IPython namespace
     for match in re.finditer(r'\$`([^`]+)`', code):
