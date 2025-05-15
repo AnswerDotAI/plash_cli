@@ -28,40 +28,28 @@ Whether you’re building web services, APIs, data applications, or tools,
 Plash provides the infrastructure backbone so you can concentrate on
 creating a splash with your code.
 
-## Deploy your first app
+## Tutorial: deploy your first app
 
 In this tutorial you will learn how to deploy your first app. This
 tutorial will explore the basics of using Plash and help you get
 familiar with it at a high level.
 
-**Objectives:**
-
-- [ ] Install the Commandline Interface (CLI)
-- [ ] Login via the CLI
-- [ ] Create your app files
-- [ ] Deploy your app
-- [ ] Visit your app
-
 **Prerequisites:**
 
 - A registered account at https://pla.sh
 - Basic terminal / command line skills
-- Basic text editor skills
 
-### Installation
+### 1. Installation
 
-Install Plash CLI with pip:
+Install Plash comandline interface (CLI) with pip:
 
 ``` sh
 pip install plash-cli
 ```
 
-That’s it! This command installs the Plash command-line interface, which
-you’ll use to deploy your applications.
+The CLI lets you manage your whole app’s lifecycle
 
-✅ Complete: Install the Commandline Interface (CLI)
-
-### CLI Login
+### 2. CLI Login
 
 Authenticate with your Plash account:
 
@@ -78,9 +66,7 @@ Return to your terminal where you’ll find the confirmation message:
 > Authentication successful! Config saved to
 > <your-global-config-path>/plash_config.json
 
-✅ Complete: Login via the CLI
-
-### Create your first app
+### 3. Create your first app
 
 Create a new directory for your first app:
 
@@ -89,7 +75,7 @@ mkdir -p plash-tutorial
 cd plash-tutorial
 ```
 
-Now let’s create the `main.py` file:
+Next, create the `main.py` file:
 
 ``` python
 from fasthtml.common import *
@@ -109,9 +95,7 @@ And create the `requirements.txt` file:
 python-fasthtml
 ```
 
-✅ Complete: Create your app files
-
-### Deploy your app
+### 4. Deploy your app
 
 Now that you’ve created your app files, you’re ready to deploy! From
 your `plash-tutorial` directory, run: `plash_deploy`
@@ -130,14 +114,15 @@ plash_deploy
 **Note:** You’ll see a different url that has been randomly generated
 for your app.
 
-✅ Complete: Deploy your app
+### 5. View your app
 
-### View your app
+Your app should be ready a couple of seconds after running the deploy
+command.
 
-Your app will take a few seconds to deploy. Once it’s ready, you can:
+Once your app is ready, you can:
 
-1.  Open the provided URL directly in your browser, or
-2.  Use the convenient view command to open it automatically:
+1.  Open the provided URL in your browser, or
+2.  Use the convenient plash_view command to open it automatically:
 
 ``` bash
 plash_view
@@ -148,7 +133,7 @@ plash_view
 
 When you visit that page you should see “Hello, World!”
 
-**🎉 Complete: you completed the Get Started Tutorial**
+🎉 Congratulations! You deployed your first app on Plash!
 
 ## Where to go from here
 
