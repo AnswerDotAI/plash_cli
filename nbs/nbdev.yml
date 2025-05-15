@@ -2,8 +2,8 @@ project:
   output-dir: _docs
 
 website:
-  title: "plash-cli"
-  site-url: "https://AnswerDotAI.github.io/plash-cli"
+  title: "plash_cli"
+  site-url: "https://AnswerDotAI.github.io/plash_cli"
   description: "CLI for the Plash hosting service"
   repo-branch: main
-  repo-url: "https://github.com/AnswerDotAI/plash-cli"
+  repo-url: "https://github.com/AnswerDotAI/plash_cli"
