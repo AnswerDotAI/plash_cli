@@ -36,7 +36,7 @@ familiar with it at a high level.
 
 **Prerequisites:**
 
-- A registered account at https://pla.sh
+- A registered account at <https://pla.sh>
 - Basic terminal / command line skills
 
 ### 1. Installation
@@ -54,7 +54,7 @@ The CLI lets you manage your whole app’s lifecycle
 Authenticate with your Plash account:
 
 ``` sh
-plash login
+plash_login
 ```
 
 This command opens your browser to authenticate with your Plash account.
@@ -89,6 +89,9 @@ def index():
 serve()
 ```
 
+This is a basic [FastHTML](https://fastht.ml) app. Plash also supports
+other popular python frameworks.
+
 And create the `requirements.txt` file:
 
 ``` python
@@ -100,8 +103,11 @@ python-fasthtml
 Now that you’ve created your app files, you’re ready to deploy! From
 your `plash-tutorial` directory, run: `plash_deploy`
 
-This command will: 1. Package your application files 2. Upload them to
-Plash’s servers 3. Build and deploy your application
+This command will:
+
+1.  Package your application files
+2.  Upload them to Plash’s servers
+3.  Build and deploy your application
 
 ``` bash
 plash_deploy
@@ -138,4 +144,4 @@ When you visit that page you should see “Hello, World!”
 ## Where to go from here
 
 Learn more about what Plash has to offer in the rest of the docs at:
-https://docs.pla.sh
+<https://docs.pla.sh>
