@@ -130,12 +130,9 @@ Once your app is ready, you can:
 1.  Open the provided URL in your browser, or
 2.  Use the convenient plash_view command to open it automatically:
 
-``` bash
+``` sh
 plash_view
 ```
-
-    Opening browser to view app :
-    https://example-app.pla.sh
 
 When you visit that page you should see “Hello, World!”
 
