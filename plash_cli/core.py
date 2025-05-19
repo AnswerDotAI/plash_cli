@@ -99,7 +99,7 @@ def _deps(script: bytes | str) -> dict | None:
 class PlashError(Exception): pass
 
 def validate_app(path):
-    "Validates that the app in the directory or script `path` is deployable as a Plash app"
+    "Validates directory `path` is a deployable Plash app"
     if not (path / 'main.py').exists():
         raise PlashError('A Plash app requires a main.py file.')
     deps = _deps((path / 'main.py').read_text())
@@ -125,7 +125,7 @@ def create_tar_archive(path:Path) -> tuple[io.BytesIO, int]:
 def deploy(
     path:Path=Path('.'), # Path to project
     app_id:str=None):    # App ID that will be used as the subdomain in plash
-    '🚀 Ship your app to production'
+    'Ship your app to production'
     print('Initializing deployment...')
     if app_id == '': print('Error: App ID cannot be an empty string'); return
     if not path.is_dir(): print("Error: Path should point to the project directory"); return
@@ -149,6 +149,7 @@ def deploy(
 def view(
     path:Path=Path('.'), # Path to project
 ):
+    "Open your app in the browser"
     url=endpoint(sub=get_app_id(path))
     print(f"Opening browser to view app :\n{url}\n")
     webbrowser.open(url)
@@ -173,7 +174,6 @@ def delete(
 # %% ../nbs/00_core.ipynb 30
 def endpoint_func(endpoint_name):
     'Creates a function for a specific API endpoint'
-    @call_parse
     def func(
         path:Path=Path('.'), # Path to project
     ):
@@ -185,7 +185,7 @@ def endpoint_func(endpoint_name):
     func.__name__ = endpoint_name
     func.__doc__ = f"Access the '{endpoint_name}' endpoint for your app"
     
-    return func
+    return call_parse(func)
 
 # Create endpoint-specific functions
 stop = endpoint_func('/stop')
@@ -224,7 +224,7 @@ def logs(
 def download(
     path:Path=Path('.'),                 # Path to project
     save_path:Path=Path("./download/")): # Save path (optional)
-    'Download your deployed app.'
+    'Download your deployed app'
     aid = get_app_id(path)
     try: save_path.mkdir(exist_ok=False)
     except: print(f"ERROR: Save path ({save_path}) already exists. Please rename or delete this folder to avoid accidental overwrites.")
