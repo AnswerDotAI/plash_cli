@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  setup:
+  Docs:
     runs-on: ubuntu-latest
     steps:
       - name: Mask PLASH_CONFIG
