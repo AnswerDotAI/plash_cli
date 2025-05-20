@@ -13,9 +13,8 @@ on:
 jobs:
   setup:
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request_target' || (github.event_name == 'pull_request_target' && github.event.action == 'closed')
     steps:
-      - name: Mask PLASH_SECRET
+      - name: Mask PLASH_CONFIG
         run: echo "::add-mask::${{ secrets.PLASH_CONFIG }}"
 
       - name: Create Plash config
@@ -35,7 +34,7 @@ jobs:
         run: pip install -e .
  
       - name: Deploy PR Preview
-        if: github.event_name == 'pull_request' && (github.event.pull_request.head.repo.permissions.push == true || contains(github.event.pull_request.labels.*.name, 'preview-docs'))
+        if: github.event_name == 'pull_request' && (github.event.pull_request.head.repo.full_name == github.repository || contains(github.event.pull_request.labels.*.name, 'preview-docs'))
         run: bash ./scripts/plash_deploy.sh "plash-docs-pr-${{ github.event.pull_request.number }}"
 
       - name: Delete PR Preview
