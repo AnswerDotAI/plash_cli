@@ -31,7 +31,7 @@ jobs:
           python-version: '3.13'
 
       - name: Install plash-cli with pip
-        run: pip install -e .
+        run: pip install -e .['dev']
  
       - name: Deploy PR Preview
         if: github.event_name == 'pull_request' && (github.event.pull_request.head.repo.full_name == github.repository || contains(github.event.pull_request.labels.*.name, 'preview-docs'))
