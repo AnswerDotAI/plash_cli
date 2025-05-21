@@ -99,7 +99,7 @@ def _deps(script: bytes | str) -> dict | None:
 class PlashError(Exception): pass
 
 def validate_app(path):
-    "Validates that the app in the directory or script `path` is deployable as a Plash app"
+    "Validates directory `path` is a deployable Plash app"
     if not (path / 'main.py').exists():
         raise PlashError('A Plash app requires a main.py file.')
     deps = _deps((path / 'main.py').read_text())
@@ -124,32 +124,38 @@ def create_tar_archive(path:Path) -> tuple[io.BytesIO, int]:
 @call_parse
 def deploy(
     path:Path=Path('.'), # Path to project
-    app_id:str=None):    # App ID that will be used as the subdomain in plash
-    '🚀 Ship your app to production'
+    app_id:str=None):    # Overrides the .plash file in project root if provided
+    'Ship your app to production'
     print('Initializing deployment...')
     if app_id == '': print('Error: App ID cannot be an empty string'); return
     if not path.is_dir(): print("Error: Path should point to the project directory"); return
     try: validate_app(path)
     except PlashAppError as e: print(f"Error: {str(e)}\nInvalid path: {path}"); return
     
-    plash_app = path / '.plash'
-    if not app_id and not plash_app.exists():
-        plash_app.write_text(f'export PLASH_APP_ID=fasthtml-app-{str(uuid4())[:8]}')
-    aid = app_id or parse_env(fn=plash_app)['PLASH_APP_ID']
+    try: 
+        if not app_id: app_id = get_app_id(path)
+    except FileNotFoundError:
+        plash_app = path / '.plash'
+        app_id = f'fasthtml-app-{str(uuid4())[:8]}'
+        plash_app.write_text(f'export PLASH_APP_ID={app_id}')
+        
     
     tarz, _ = create_tar_archive(path)
-    resp = mk_auth_req(endpoint(rt="/upload"), "post", files={'file': tarz}, timeout=300.0, data={'aid': aid})
+    resp = mk_auth_req(endpoint(rt="/upload"), "post", files={'file': tarz}, timeout=300.0, data={'aid': app_id})
     if resp.status_code == 200:
         print('✅ Upload complete! Your app is currently being built.')
-        print(f'It will be live at {endpoint(sub=aid)}')
+        print(f'It will be live at {app_id if '.' in app_id else endpoint(sub=app_id)}')
     else: print(f'Failure: {resp.status_code}\n{resp.text}')
 
 # %% ../nbs/00_core.ipynb 26
 @call_parse
 def view(
-    path:Path=Path('.'), # Path to project
+    path:Path=Path('.'), # Path to project directory
+    app_id:str=None,     # Overrides the .plash file in project root if provided
 ):
-    url=endpoint(sub=get_app_id(path))
+    "Open your app in the browser"
+    if not app_id: app_id = get_app_id(path)
+    url = app_id if '.' in app_id else endpoint(sub=app_id)
     print(f"Opening browser to view app :\n{url}\n")
     webbrowser.open(url)
 
@@ -157,35 +163,36 @@ def view(
 @call_parse
 def delete(
     path:Path=Path('.'), # Path to project
+    app_id:str=None,     # Overrides the .plash file in project root if provided
     force:bool=False):   # Skip confirmation prompt
     'Delete your deployed app'
-    aid = get_app_id(path)
+    if not app_id: app_id = get_app_id(path)
     if not force:
-        confirm = input(f"Are you sure you want to delete app '{aid}'? This action cannot be undone. [y/N]: ")
+        confirm = input(f"Are you sure you want to delete app '{app_id}'? This action cannot be undone. [y/N]: ")
         if confirm.lower() not in ['y', 'yes']:
             print("Deletion cancelled.")
             return
     
-    print(f"Deleting app '{aid}'...")
-    r = mk_auth_req(endpoint(rt=f"/delete?aid={aid}"), "delete")
+    print(f"Deleting app '{app_id}'...")
+    r = mk_auth_req(endpoint(rt=f"/delete?aid={app_id}"), "delete")
     return r.text
 
 # %% ../nbs/00_core.ipynb 30
 def endpoint_func(endpoint_name):
     'Creates a function for a specific API endpoint'
-    @call_parse
     def func(
         path:Path=Path('.'), # Path to project
+        app_id:str=None,     # Overrides the .plash file in project root if provided
     ):
-        aid = get_app_id(path)
-        r = mk_auth_req(endpoint(rt=f"{endpoint_name}?aid={aid}"))
+        if not app_id: app_id = get_app_id(path)
+        r = mk_auth_req(endpoint(rt=f"{endpoint_name}?aid={app_id}"))
         return r.text
     
     # Set the function name and docstring
     func.__name__ = endpoint_name
     func.__doc__ = f"Access the '{endpoint_name}' endpoint for your app"
     
-    return func
+    return call_parse(func)
 
 # Create endpoint-specific functions
 stop = endpoint_func('/stop')
@@ -198,15 +205,16 @@ log_modes = str_enum('log_modes', 'build', 'app')
 @call_parse
 def logs(
     path:Path=Path('.'),    # Path to project
+    app_id:str=None,        # Overrides the .plash file in project root if provided
     mode:log_modes='build', # Choose between build or app logs
     tail:bool=False):       # Tail the logs
     'Prints the logs for your deployed app'
-    aid = get_app_id(path)
+    if not app_id: app_id = get_app_id(path)
     if tail:
         text = ''
         while True:
             try:
-                r = mk_auth_req(endpoint(rt=f"/logs?aid={aid}&mode={mode}"))
+                r = mk_auth_req(endpoint(rt=f"/logs?aid={app_id}&mode={mode}"))
                 if r.status_code == 200:
                     print(r.text[len(text):], end='') # Only print updates
                     text = r.text
@@ -216,20 +224,21 @@ def logs(
                     print(f"Error: {r.status_code}")
             except KeyboardInterrupt:
                 return "\nExiting"
-    r = mk_auth_req(endpoint(rt=f"/logs?aid={aid}&mode={mode}"))
+    r = mk_auth_req(endpoint(rt=f"/logs?aid={app_id}&mode={mode}"))
     return r.text
 
 # %% ../nbs/00_core.ipynb 35
 @call_parse
 def download(
     path:Path=Path('.'),                 # Path to project
+    app_id:str=None,                     # Overrides the .plash file in project root if provided
     save_path:Path=Path("./download/")): # Save path (optional)
-    'Download your deployed app.'
-    aid = get_app_id(path)
+    'Download your deployed app'
+    if not app_id: app_id = get_app_id(path)
     try: save_path.mkdir(exist_ok=False)
     except: print(f"ERROR: Save path ({save_path}) already exists. Please rename or delete this folder to avoid accidental overwrites.")
     else:
-        response = mk_auth_req(endpoint(rt=f'/download?aid={aid}')).raise_for_status()
+        response = mk_auth_req(endpoint(rt=f'/download?aid={app_id}')).raise_for_status()
         file_bytes = io.BytesIO(response.content)
         with tarfile.open(fileobj=file_bytes, mode="r:gz") as tar: tar.extractall(path=save_path)
         print(f"Downloaded your app to: {save_path}")

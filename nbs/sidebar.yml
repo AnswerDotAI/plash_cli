@@ -11,7 +11,7 @@ website:
         contents:
           - how_to/00_env_vars.ipynb
           - how_to/01_add_dependencies.ipynb
-          - how_to/03_add_custom_domain.ipynb
+          - how_to/02_add_custom_domain.ipynb
       - section: reference
         contents:
           - reference/00_cli.ipynb

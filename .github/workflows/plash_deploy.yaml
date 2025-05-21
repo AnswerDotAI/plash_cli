@@ -1,0 +1,46 @@
+name: Deploy to Plash
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+  pull_request_target:
+    types: [closed]
+  workflow_dispatch:
+
+jobs:
+  Docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mask PLASH_CONFIG
+        run: echo "::add-mask::${{ secrets.PLASH_CONFIG }}"
+
+      - name: Create Plash config
+        run: |
+          mkdir -p ~/.config
+          echo '${{ secrets.PLASH_CONFIG }}' > ~/.config/plash_config.json
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install plash-cli with pip
+        run: pip install -e .['dev']
+ 
+      - name: Deploy PR Preview
+        if: github.event_name == 'pull_request' && (github.event.pull_request.head.repo.full_name == github.repository || contains(github.event.pull_request.labels.*.name, 'preview-docs'))
+        run: bash ./scripts/deploy_docs.sh "plash-docs-pr-${{ github.event.pull_request.number }}"
+
+      - name: Delete PR Preview
+        if: github.event_name == 'pull_request_target' && github.event.action == 'closed'
+        run: plash_delete --force --app_id "plash-docs-pr-${{ github.event.pull_request.number }}"
+
+      - name: Deploy Plash Docs
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+        run: bash ./scripts/deploy_docs.sh
