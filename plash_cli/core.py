@@ -5,7 +5,7 @@
 # %% auto 0
 __all__ = ['PLASH_CONFIG_HOME', 'PLASH_DOMAIN', 'pat', 'stop', 'start', 'log_modes', 'get_client', 'mk_auth_req', 'get_app_id',
            'endpoint', 'is_included', 'poll_cookies', 'login', 'PlashError', 'validate_app', 'create_tar_archive',
-           'deploy', 'view', 'delete', 'endpoint_func', 'logs', 'download']
+           'deploy', 'view', 'delete', 'endpoint_func', 'logs', 'download', 'apps']
 
 # %% ../nbs/00_core.ipynb 2
 from fastcore.all import *
@@ -242,3 +242,12 @@ def download(
         file_bytes = io.BytesIO(response.content)
         with tarfile.open(fileobj=file_bytes, mode="r:gz") as tar: tar.extractall(path=save_path)
         print(f"Downloaded your app to: {save_path}")
+
+# %% ../nbs/00_core.ipynb 37
+@call_parse
+def apps():
+    "List your deployed apps (1=running, 0=stopped)"
+    r = mk_auth_req(endpoint(rt="/user_apps")).raise_for_status()
+    apps = r.json()
+    if not apps: return "You don't have any deployed Plash apps."
+    for a in apps: print(f'{a['running']} {a['name']}')
