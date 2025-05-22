@@ -246,18 +246,8 @@ def download(
 # %% ../nbs/00_core.ipynb 37
 @call_parse
 def apps():
-    "List all your deployed apps"
+    "List your deployed apps (1=running, 0=stopped)"
     r = mk_auth_req(endpoint(rt="/user_apps")).raise_for_status()
     apps = r.json()
     if not apps: return "You don't have any deployed Plash apps."
-    
-    print("\nYour Plash Apps:")
-    print("=" * 40)
-    print(f"{'APP NAME':<30} {'STATUS':<10}")
-    print("-" * 40)
-    
-    for a in apps:
-        status = "RUNNING" if a['running'] else "stopped"
-        print(f"{a['name']:<30} {status:<10}")
-    
-    print("=" * 40)
+    for a in apps: print(f'{a['running']} {a['name']}')
