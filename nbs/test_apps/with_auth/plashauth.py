@@ -9,7 +9,12 @@ dotenv.load_dotenv()
 log.basicConfig(level=log.INFO)
 
 IS_DEV=True
+IN_DOCKER=True
 PLASH_AUTH_SERVER_PREFIX = 'http://localhost:5002' if IS_DEV else 'https://plash.app'
+# magic IP address for reaching the host inside a docker container
+# until we figure out how to reach it via a public DNS name which resolves to a public ip
+# which is not reachable from the host
+PLASH_AUTH_SERVER_PREFIX = 'http://172.17.0.1:5002' if IN_DOCKER else PLASH_AUTH_SERVER_PREFIX
 PLASH_AUTH_SERVER_PATH = '/api/appauth'
 PLASH_AUTH_SERVER_URL = PLASH_AUTH_SERVER_PREFIX + PLASH_AUTH_SERVER_PATH
 
@@ -38,10 +43,9 @@ def _plash_auth_url(
                 json=payload,
                 auth=(plash_app_id, plash_app_secret)
             )
-            response.raise_for_status() # Raises HTTPStatusError for 4xx/5xx
+            response.raise_for_status()
             data = response.json()
-            # Assuming endpoint returns e.g. {"url_to_follow": "...", "params_for_url": {...}}
-            return data.get("url_to_follow"), data.get("params_for_url", {})
+            return data.get("plash_signin_url")
     except (httpx.HTTPError, json.JSONDecodeError) as e:
         print(f"Auth request failed: {e}")
         return None
