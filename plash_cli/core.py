@@ -125,7 +125,7 @@ def create_tar_archive(path:Path) -> tuple[io.BytesIO, int]:
 def deploy(
     path:Path=Path('.'), # Path to project
     app_id:str=None):    # Overrides the .plash file in project root if provided
-    'Ship your app to production'
+    "Deploy app to production (ignores paths starting with '.')"
     print('Initializing deployment...')
     if app_id == '': print('Error: App ID cannot be an empty string'); return
     if not path.is_dir(): print("Error: Path should point to the project directory"); return
