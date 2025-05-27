@@ -130,7 +130,7 @@ def deploy(
     if app_id == '': print('Error: App ID cannot be an empty string'); return
     if not path.is_dir(): print("Error: Path should point to the project directory"); return
     try: validate_app(path)
-    except PlashAppError as e: print(f"Error: {str(e)}\nInvalid path: {path}"); return
+    except PlashError as e: print(f"Error: {str(e)}\nInvalid path: {path}"); return
     
     try: 
         if not app_id: app_id = get_app_id(path)
