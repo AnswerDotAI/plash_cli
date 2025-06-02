@@ -134,7 +134,7 @@ def deploy(
     name:str=None):  # Overrides the .plash file in project root if provided
     'Ship your app to production'
     print('Initializing deployment...')
-    if name == '': print('Error: App ID cannot be an empty string'); return
+    if name == '': print('Error: App name cannot be an empty string'); return
     if not path.is_dir(): print("Error: Path should point to the project directory"); return
     try: validate_app(path)
     except PlashError as e: print(f"Error: {str(e)}\nInvalid path: {path}"); return
