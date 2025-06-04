@@ -2,6 +2,19 @@
 
 <!-- do not remove -->
 
+## 0.1.1
+
+### New Features
+
+- migrate app id to app name ([#35](https://github.com/AnswerDotAI/plash_cli/issues/35))
+
+- have log end when build is done ([#34](https://github.com/AnswerDotAI/plash_cli/issues/34))
+
+### Bugs Squashed
+
+- exception error name incorrect ([#33](https://github.com/AnswerDotAI/plash_cli/issues/33))
+
+
 ## 0.1.0
 
 ### New Features
