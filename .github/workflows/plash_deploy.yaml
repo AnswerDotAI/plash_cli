@@ -39,7 +39,7 @@ jobs:
 
       - name: Delete PR Preview
         if: github.event_name == 'pull_request_target' && github.event.action == 'closed'
-        run: plash_delete --force --app_id "plash-docs-pr-${{ github.event.pull_request.number }}"
+        run: plash_delete --force --name "plash-docs-pr-${{ github.event.pull_request.number }}"
 
       - name: Deploy Plash Docs
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
