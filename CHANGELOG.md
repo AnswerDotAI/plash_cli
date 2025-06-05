@@ -2,6 +2,14 @@
 
 <!-- do not remove -->
 
+## 0.1.2
+
+### New Features
+
+- feat: add flag to list all user apps ([#36](https://github.com/AnswerDotAI/plash_cli/issues/36))
+
+
+
 ## 0.1.1
 
 ### New Features
