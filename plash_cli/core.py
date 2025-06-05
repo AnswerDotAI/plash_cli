@@ -252,9 +252,10 @@ def download(
 
 # %% ../nbs/00_core.ipynb 37
 @call_parse
-def apps():
-    "List your deployed apps (1=running, 0=stopped)"
+def apps(verbose:bool=False):
+    "List your deployed apps (verbose shows status table: 1=running, 0=stopped)"
     r = mk_auth_req(endpoint(rt="/user_apps")).raise_for_status()
     apps = r.json()
     if not apps: return "You don't have any deployed Plash apps."
-    for a in apps: print(f'{a['running']} {a['name']}')
+    if verbose: [print(f'{a['running']} {a['name']}') for a in apps]
+    else: [print(a['name']) for a in apps]
