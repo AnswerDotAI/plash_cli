@@ -92,6 +92,11 @@ serve()
 This is a basic [FastHTML](https://fastht.ml) app. Plash also supports
 other popular python frameworks.
 
+> [!WARNING]
+>
+> Your app must run on port `5001` which is the default port for
+> FastHTML apps.
+
 And create the `requirements.txt` file:
 
 ``` python
