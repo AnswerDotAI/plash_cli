@@ -4,8 +4,8 @@
 
 # %% auto 0
 __all__ = ['PLASH_CONFIG_HOME', 'PLASH_DOMAIN', 'pat', 'stop', 'start', 'log_modes', 'get_client', 'mk_auth_req', 'get_app_name',
-           'endpoint', 'is_included', 'PlashError', 'poll_cookies', 'login', 'validate_name', 'validate_app',
-           'create_tar_archive', 'deploy', 'view', 'delete', 'endpoint_func', 'logs', 'download', 'apps']
+           'endpoint', 'is_included', 'PlashError', 'poll_cookies', 'login', 'validate_app', 'create_tar_archive',
+           'deploy', 'view', 'delete', 'endpoint_func', 'logs', 'download', 'apps']
 
 # %% ../nbs/00_core.ipynb 2
 from fastcore.all import *
@@ -105,31 +105,7 @@ def _deps(script: bytes | str) -> dict | None:
         return '\n'.join(tomllib.loads(content)['dependencies'])
     else: return None
 
-# %% ../nbs/00_core.ipynb 21
-def validate_name(name):
-    "Validate app name meets subdomain requirements"
-    if '.' in name: return True  # custom domains
-    if not name or not isinstance(name, str): raise PlashError(f"Invalid name {name}, must be of type string")
-    if name[0] not in string.ascii_lowercase: raise PlashError(f"Invalid name {name}, must start with lowercase letter")
-    parts = name.split('-')
-    if len(parts) not in [3, 4]: raise PlashError(f"Invalid name {name}, must have 3-4 hyphen-separated words")
-    for part in parts:
-        if not part: raise PlashError(f"Invalid name {name}, consecutive hyphens found")
-        if len(part) > 15: raise PlashError(f"Invalid name {name}, word '{part}' is too long (max 15 chars)")
-        if not all(c in string.ascii_lowercase + string.digits for c in part): raise PlashError(f"Invalid name {name}, word '{part}' contains invalid characters")
-    return True
-
-
-
-# %% ../nbs/00_core.ipynb 23
-def _gen_app_name():
-    adjectives = ['admiring', 'adoring', 'amazing', 'awesome', 'beautiful', 'blissful', 'bold', 'brave', 'busy', 'charming', 'clever', 'compassionate', 'confident', 'cool', 'dazzling', 'determined', 'dreamy', 'eager', 'ecstatic', 'elastic', 'elated', 'elegant', 'epic', 'exciting', 'fervent', 'festive', 'flamboyant', 'focused', 'friendly', 'frosty', 'funny', 'gallant', 'gifted', 'goofy', 'gracious', 'great', 'happy', 'hopeful', 'hungry', 'inspiring', 'intelligent', 'interesting', 'jolly', 'jovial', 'keen', 'kind', 'laughing', 'loving', 'lucid', 'magical', 'modest', 'nice', 'nifty', 'nostalgic', 'objective', 'optimistic', 'peaceful', 'pensive', 'practical', 'priceless', 'quirky', 'quizzical', 'relaxed', 'reverent', 'romantic', 'serene', 'sharp', 'silly', 'sleepy', 'stoic', 'sweet', 'tender', 'trusting', 'upbeat', 'vibrant', 'vigilant', 'vigorous', 'wizardly', 'wonderful', 'youthful', 'zealous', 'zen', 'golden', 'silver', 'crimson', 'azure', 'emerald', 'violet', 'amber', 'coral', 'turquoise', 'lavender', 'minty', 'citrus', 'vanilla', 'woody', 'floral', 'fresh', 'gentle', 'sparkling', 'precise', 'curious']
-    nouns = ['tiger', 'eagle', 'river', 'mountain', 'forest', 'ocean', 'star', 'moon', 'wind', 'dragon', 'phoenix', 'wolf', 'bear', 'lion', 'shark', 'falcon', 'raven', 'crystal', 'diamond', 'ruby', 'sapphire', 'pearl', 'wave', 'tide', 'cloud', 'rainbow', 'sunset', 'sunrise', 'galaxy', 'comet', 'meteor', 'planet', 'nebula', 'cosmos', 'universe', 'atom', 'photon', 'quantum', 'matrix', 'cipher', 'code', 'signal', 'pulse', 'beam', 'ray', 'spark', 'frost', 'ice', 'snow', 'mist', 'fog', 'dew', 'rain', 'hail', 'helix', 'prism', 'lens', 'mirror', 'echo', 'heart', 'mind', 'dream', 'vision', 'hope', 'wish', 'magic', 'spell', 'charm', 'rune', 'symbol', 'token', 'key', 'door', 'gate', 'bridge', 'tower', 'castle', 'fortress', 'shield', 'dolphin', 'whale', 'penguin', 'butterfly', 'hummingbird', 'deer', 'rabbit', 'fox', 'otter', 'panda', 'koala', 'zebra', 'giraffe', 'elephant', 'valley', 'canyon', 'meadow', 'prairie', 'island', 'lake', 'pond', 'stream', 'waterfall', 'cliff', 'peak', 'hill', 'grove', 'garden', 'sunlight', 'breeze', 'melody', 'sparkle', 'whirlpool', 'windmill', 'carousel', 'spiral', 'glow']
-    verbs = ['runs', 'flies', 'jumps', 'builds', 'creates', 'flows', 'shines', 'grows', 'moves', 'works', 'dances', 'sings', 'plays', 'dreams', 'thinks', 'learns', 'teaches', 'helps', 'heals', 'saves', 'protects', 'guards', 'watches', 'sees', 'hears', 'feels', 'knows', 'understands', 'discovers', 'explores', 'searches', 'finds', 'seeks', 'holds', 'carries', 'lifts', 'pushes', 'pulls', 'makes', 'crafts', 'forges', 'shapes', 'forms', 'molds', 'carves', 'joins', 'connects', 'links', 'binds', 'ties', 'opens', 'closes', 'starts', 'stops', 'begins', 'ends', 'finishes', 'completes', 'wins', 'triumphs', 'succeeds', 'achieves', 'accomplishes', 'reaches', 'arrives', 'departs', 'leaves', 'returns', 'comes', 'goes', 'travels', 'journeys', 'walks', 'sprints', 'races', 'speeds', 'rushes', 'hurries', 'waits', 'pauses', 'rests', 'sleeps', 'wakes', 'rises', 'climbs', 'ascends', 'descends', 'swims', 'dives', 'surfs', 'sails', 'paddles', 'hikes', 'treks', 'wanders', 'roams', 'ventures', 'navigates', 'glides', 'soars', 'floats', 'drifts', 'tosses', 'divides', 'shares', 'secures', 'settles', 'places', 'wonders', 'questions']
-    suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=3))
-    return f"{random.choice(adjectives)}-{random.choice(nouns)}-{random.choice(verbs)}-{suffix}"
-
-# %% ../nbs/00_core.ipynb 24
+# %% ../nbs/00_core.ipynb 19
 def validate_app(path):
     "Validates directory `path` is a deployable Plash app"
     if not (path / 'main.py').exists():
@@ -138,7 +114,7 @@ def validate_app(path):
     if  deps and (path/"requirements.txt").exists(): 
         raise PlashError('A Plash app should not contain both a requirements.txt file and inline dependencies (see PEP723).')
 
-# %% ../nbs/00_core.ipynb 29
+# %% ../nbs/00_core.ipynb 24
 def create_tar_archive(path:Path) -> tuple[io.BytesIO, int]:
     "Creates a tar archive of a directory, excluding files based on is_included"
     tarz = io.BytesIO()
@@ -152,7 +128,15 @@ def create_tar_archive(path:Path) -> tuple[io.BytesIO, int]:
     tarz.seek(0)
     return tarz, len(files)
 
-# %% ../nbs/00_core.ipynb 30
+# %% ../nbs/00_core.ipynb 25
+def _gen_app_name():
+    adjectives = ['admiring', 'adoring', 'amazing', 'awesome', 'beautiful', 'blissful', 'bold', 'brave', 'busy', 'charming', 'clever', 'compassionate', 'confident', 'cool', 'dazzling', 'determined', 'dreamy', 'eager', 'ecstatic', 'elastic', 'elated', 'elegant', 'epic', 'exciting', 'fervent', 'festive', 'flamboyant', 'focused', 'friendly', 'frosty', 'funny', 'gallant', 'gifted', 'goofy', 'gracious', 'great', 'happy', 'hopeful', 'hungry', 'inspiring', 'intelligent', 'interesting', 'jolly', 'jovial', 'keen', 'kind', 'laughing', 'loving', 'lucid', 'magical', 'modest', 'nice', 'nifty', 'nostalgic', 'objective', 'optimistic', 'peaceful', 'pensive', 'practical', 'priceless', 'quirky', 'quizzical', 'relaxed', 'reverent', 'romantic', 'serene', 'sharp', 'silly', 'sleepy', 'stoic', 'sweet', 'tender', 'trusting', 'upbeat', 'vibrant', 'vigilant', 'vigorous', 'wizardly', 'wonderful', 'youthful', 'zealous', 'zen', 'golden', 'silver', 'crimson', 'azure', 'emerald', 'violet', 'amber', 'coral', 'turquoise', 'lavender', 'minty', 'citrus', 'vanilla', 'woody', 'floral', 'fresh', 'gentle', 'sparkling', 'precise', 'curious']
+    nouns = ['tiger', 'eagle', 'river', 'mountain', 'forest', 'ocean', 'star', 'moon', 'wind', 'dragon', 'phoenix', 'wolf', 'bear', 'lion', 'shark', 'falcon', 'raven', 'crystal', 'diamond', 'ruby', 'sapphire', 'pearl', 'wave', 'tide', 'cloud', 'rainbow', 'sunset', 'sunrise', 'galaxy', 'comet', 'meteor', 'planet', 'nebula', 'cosmos', 'universe', 'atom', 'photon', 'quantum', 'matrix', 'cipher', 'code', 'signal', 'pulse', 'beam', 'ray', 'spark', 'frost', 'ice', 'snow', 'mist', 'fog', 'dew', 'rain', 'hail', 'helix', 'prism', 'lens', 'mirror', 'echo', 'heart', 'mind', 'dream', 'vision', 'hope', 'wish', 'magic', 'spell', 'charm', 'rune', 'symbol', 'token', 'key', 'door', 'gate', 'bridge', 'tower', 'castle', 'fortress', 'shield', 'dolphin', 'whale', 'penguin', 'butterfly', 'hummingbird', 'deer', 'rabbit', 'fox', 'otter', 'panda', 'koala', 'zebra', 'giraffe', 'elephant', 'valley', 'canyon', 'meadow', 'prairie', 'island', 'lake', 'pond', 'stream', 'waterfall', 'cliff', 'peak', 'hill', 'grove', 'garden', 'sunlight', 'breeze', 'melody', 'sparkle', 'whirlpool', 'windmill', 'carousel', 'spiral', 'glow']
+    verbs = ['runs', 'flies', 'jumps', 'builds', 'creates', 'flows', 'shines', 'grows', 'moves', 'works', 'dances', 'sings', 'plays', 'dreams', 'thinks', 'learns', 'teaches', 'helps', 'heals', 'saves', 'protects', 'guards', 'watches', 'sees', 'hears', 'feels', 'knows', 'understands', 'discovers', 'explores', 'searches', 'finds', 'seeks', 'holds', 'carries', 'lifts', 'pushes', 'pulls', 'makes', 'crafts', 'forges', 'shapes', 'forms', 'molds', 'carves', 'joins', 'connects', 'links', 'binds', 'ties', 'opens', 'closes', 'starts', 'stops', 'begins', 'ends', 'finishes', 'completes', 'wins', 'triumphs', 'succeeds', 'achieves', 'accomplishes', 'reaches', 'arrives', 'departs', 'leaves', 'returns', 'comes', 'goes', 'travels', 'journeys', 'walks', 'sprints', 'races', 'speeds', 'rushes', 'hurries', 'waits', 'pauses', 'rests', 'sleeps', 'wakes', 'rises', 'climbs', 'ascends', 'descends', 'swims', 'dives', 'surfs', 'sails', 'paddles', 'hikes', 'treks', 'wanders', 'roams', 'ventures', 'navigates', 'glides', 'soars', 'floats', 'drifts', 'tosses', 'divides', 'shares', 'secures', 'settles', 'places', 'wonders', 'questions']
+    suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=3))
+    return f"{random.choice(adjectives)}-{random.choice(nouns)}-{random.choice(verbs)}-{suffix}"
+
+# %% ../nbs/00_core.ipynb 26
 @call_parse
 def deploy(
     path:Path=Path('.'), # Path to project
@@ -170,10 +154,7 @@ def deploy(
         plash_app = path / '.plash'
         name = _gen_app_name()
         plash_app.write_text(f'export PLASH_APP_NAME={name}')
-    
-    try: validate_name(name)
-    except PlashError as e: print(f"Error: {e}"); return
-    
+        
     tarz, _ = create_tar_archive(path)
     resp = mk_auth_req(endpoint(rt="/upload"), "post", files={'file': tarz}, timeout=300.0, data={'name': name})
     if resp.status_code == 200:
@@ -181,7 +162,7 @@ def deploy(
         print(f'It will be live at {name if '.' in name else endpoint(sub=name)}')
     else: print(f'Failure: {resp.status_code}\n{resp.text}')
 
-# %% ../nbs/00_core.ipynb 32
+# %% ../nbs/00_core.ipynb 28
 @call_parse
 def view(
     path:Path=Path('.'), # Path to project directory
@@ -193,7 +174,7 @@ def view(
     print(f"Opening browser to view app :\n{url}\n")
     webbrowser.open(url)
 
-# %% ../nbs/00_core.ipynb 34
+# %% ../nbs/00_core.ipynb 30
 @call_parse
 def delete(
     path:Path=Path('.'), # Path to project
@@ -211,7 +192,7 @@ def delete(
     r = mk_auth_req(endpoint(rt=f"/delete?name={name}"), "delete")
     return r.text
 
-# %% ../nbs/00_core.ipynb 36
+# %% ../nbs/00_core.ipynb 32
 def endpoint_func(endpoint_name):
     'Creates a function for a specific API endpoint'
     def func(
@@ -232,10 +213,10 @@ def endpoint_func(endpoint_name):
 stop = endpoint_func('/stop')
 start = endpoint_func('/start')
 
-# %% ../nbs/00_core.ipynb 38
+# %% ../nbs/00_core.ipynb 34
 log_modes = str_enum('log_modes', 'build', 'app')
 
-# %% ../nbs/00_core.ipynb 39
+# %% ../nbs/00_core.ipynb 35
 @call_parse
 def logs(
     path:Path=Path('.'),    # Path to project
@@ -261,7 +242,7 @@ def logs(
     r = mk_auth_req(endpoint(rt=f"/logs?name={name}&mode={mode}"))
     return r.text
 
-# %% ../nbs/00_core.ipynb 41
+# %% ../nbs/00_core.ipynb 37
 @call_parse
 def download(
     path:Path=Path('.'),                 # Path to project
@@ -277,7 +258,7 @@ def download(
         with tarfile.open(fileobj=file_bytes, mode="r:gz") as tar: tar.extractall(path=save_path)
         print(f"Downloaded your app to: {save_path}")
 
-# %% ../nbs/00_core.ipynb 43
+# %% ../nbs/00_core.ipynb 39
 @call_parse
 def apps(verbose:bool=False):
     "List your deployed apps (verbose shows status table: 1=running, 0=stopped)"

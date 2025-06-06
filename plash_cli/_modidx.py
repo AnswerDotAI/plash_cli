@@ -23,5 +23,4 @@ d = { 'settings': { 'branch': 'main',
                                 'plash_cli.core.mk_auth_req': ('core.html#mk_auth_req', 'plash_cli/core.py'),
                                 'plash_cli.core.poll_cookies': ('core.html#poll_cookies', 'plash_cli/core.py'),
                                 'plash_cli.core.validate_app': ('core.html#validate_app', 'plash_cli/core.py'),
-                                'plash_cli.core.validate_name': ('core.html#validate_name', 'plash_cli/core.py'),
                                 'plash_cli.core.view': ('core.html#view', 'plash_cli/core.py')}}}
