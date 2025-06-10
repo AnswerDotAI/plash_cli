@@ -130,9 +130,10 @@ def create_tar_archive(path:Path) -> tuple[io.BytesIO, int]:
 # %% ../nbs/00_core.ipynb 24
 @call_parse
 def deploy(
-    path:Path=Path('.'), # Path to project
-    name:str=None):  # Overrides the .plash file in project root if provided
-    "Deploy app to production (ignores paths starting with '.')"
+    path:Path=Path('.'),    # Path to project
+    name:str=None,          # Overrides the .plash file in project root if provided
+    force_data:bool=False): # Overwrite data/ directory during deployment
+    "Deploy app to production, ignores paths starting with '.', excludes data/ directory by default unless --force_data is used."
     print('Initializing deployment...')
     if name == '': print('Error: App name cannot be an empty string'); return
     if not path.is_dir(): print("Error: Path should point to the project directory"); return
@@ -145,10 +146,10 @@ def deploy(
         plash_app = path / '.plash'
         name = f'fasthtml-app-{str(uuid4())[:8]}'
         plash_app.write_text(f'export PLASH_APP_NAME={name}')
-        
     
     tarz, _ = create_tar_archive(path)
-    resp = mk_auth_req(endpoint(rt="/upload"), "post", files={'file': tarz}, timeout=300.0, data={'name': name})
+    resp = mk_auth_req(endpoint(rt="/upload"), "post", files={'file': tarz}, timeout=300.0, 
+                       data={'name': name, 'force_data': force_data})
     if resp.status_code == 200:
         print('✅ Upload complete! Your app is currently being built.')
         print(f'It will be live at {name if '.' in name else endpoint(sub=name)}')
