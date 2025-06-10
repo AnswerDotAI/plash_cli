@@ -114,10 +114,11 @@ def validate_app(path):
         raise PlashError('A Plash app should not contain both a requirements.txt file and inline dependencies (see PEP723).')
 
 # %% ../nbs/00_core.ipynb 23
-def create_tar_archive(path:Path) -> tuple[io.BytesIO, int]:
+def create_tar_archive(path:Path, force_data:bool) -> tuple[io.BytesIO, int]:
     "Creates a tar archive of a directory, excluding files based on is_included"
     tarz = io.BytesIO()
     files = L(path if path.is_file() else Path(path).iterdir()).filter(is_included)
+    if not force_data: files = files.filter(lambda f: f.name != 'data')
     with tarfile.open(fileobj=tarz, mode='w:gz') as tar:
         for f in files: tar.add(f, arcname=f.name)
         if deps:=_deps((path / 'main.py').read_bytes()):
@@ -147,7 +148,7 @@ def deploy(
         name = f'fasthtml-app-{str(uuid4())[:8]}'
         plash_app.write_text(f'export PLASH_APP_NAME={name}')
     
-    tarz, _ = create_tar_archive(path)
+    tarz, _ = create_tar_archive(path, force_data)
     resp = mk_auth_req(endpoint(rt="/upload"), "post", files={'file': tarz}, timeout=300.0, 
                        data={'name': name, 'force_data': force_data})
     if resp.status_code == 200:
