@@ -148,13 +148,18 @@ When you visit that page you should see “Hello, World!”
 Learn more about what Plash has to offer in the rest of the docs at:
 <https://docs.pla.sh>
 
-For learning more about creating web apps with FastHTML, we recommend
-looking at the official docs at: <https://fastht.ml/docs/>.
-
-Particularly, we recommend the following:
+To learn more about creating web apps with FastHTML, we recommend
+looking at the official docs at: <https://fastht.ml/docs/>. In
+particular, we recommend the following:
 
 1.  [OAuth](https://fastht.ml/docs/explains/oauth.html) - Setup
     authentication for your Plash App with Google Sign-In or other OAuth
     Providers.
 2.  [Stripe](https://fastht.ml/docs/explains/stripe.html) - Accept
     payments for your products hosted on Plash with Stripe.
+
+Would you like to use a different python web framework? Then check out
+the [examples
+section](https://github.com/AnswerDotAI/plash_cli/tree/main/examples) of
+the repo, it has examples for many popular python web frameworks like
+FastAPI, Gradio, and Streamlit.
