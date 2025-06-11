@@ -1,12 +1,8 @@
-from fasthtml.common import *
-from fastcore.xtras import flexicache, mtime_policy
+from starlette.applications import Starlette
+from starlette.staticfiles import StaticFiles
+import uvicorn
 
-app = FastHTML()
-cached_file_response = flexicache(mtime_policy("_docs"))(FileResponse)
+app = Starlette()
+app.mount("/", StaticFiles(directory="_docs", html=True))
 
-@app.get("/{path:path}")
-async def static(path:str): 
-    if "." in path: return cached_file_response(f'_docs/{path}')
-    return cached_file_response(f'_docs/{path}/index.html')
-
-serve()
+uvicorn.run(app, host="0.0.0.0", port=5001)
