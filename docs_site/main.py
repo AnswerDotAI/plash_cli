@@ -1,12 +1,12 @@
 from fasthtml.common import *
-from fastcore.xtras import flexicache, mtime_policy
+from asyncstdlib.functools import cache
 
 app = FastHTML()
-cached_file_response = flexicache(mtime_policy("_docs"))(FileResponse)
 
 @app.get("/{path:path}")
+@cache
 async def static(path:str): 
-    if "." in path: return cached_file_response(f'_docs/{path}')
-    return cached_file_response(f'_docs/{path}/index.html')
+    if "." not in path: path += "/index.html"
+    return FileResponse(f'_docs/{path}')
 
 serve()
