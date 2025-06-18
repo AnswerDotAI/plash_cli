@@ -35,24 +35,30 @@ jobs:
  
       - name: Deploy PR Preview
         if: github.event_name == 'pull_request' && (github.event.pull_request.head.repo.full_name == github.repository || contains(github.event.pull_request.labels.*.name, 'preview-docs'))
-        id: deploy
-        run: |
-          OUTPUT=$(bash ./scripts/deploy_docs.sh "plash-docs-pr-${{ github.event.pull_request.number }}")
-          echo "$OUTPUT"
-          URL=$(echo "$OUTPUT" | grep -o 'https://[^[:space:]]*' | head -1)
-          echo "url=$URL" >> $GITHUB_OUTPUT
+        run: bash ./scripts/deploy_docs.sh "plash-docs-pr-${{ github.event.pull_request.number }}"
 
       - name: Comment PR with preview URL
         if: github.event_name == 'pull_request' && (github.event.pull_request.head.repo.full_name == github.repository || contains(github.event.pull_request.labels.*.name, 'preview-docs'))
         uses: actions/github-script@v7
         with:
           script: |
-            github.rest.issues.createComment({
+            const comments = await github.rest.issues.listComments({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '📖 **Documentation Preview**: ${{ steps.deploy.outputs.url }}'
-            })
+            });
+            const hasPreviewComment = comments.data.some(comment => 
+              comment.user.login === 'github-actions[bot]' && 
+              comment.body.includes('📖 **Documentation Preview**')
+            );
+            if (!hasPreviewComment) {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: '📖 **Documentation Preview**: https://plash-docs-pr-${{ github.event.pull_request.number }}.plash.dev'
+              });
+            }
 
       - name: Delete PR Preview
         if: github.event_name == 'pull_request_target' && github.event.action == 'closed'
