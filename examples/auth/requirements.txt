@@ -1,0 +1,6 @@
+python-fasthtml
+fastcore 
+httpx>=0.28.1 
+python-dotenv 
+pyjwt
+cryptography
