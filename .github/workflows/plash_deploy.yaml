@@ -56,7 +56,7 @@ jobs:
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: '📖 **Documentation Preview**: https://plash-docs-pr-${{ github.event.pull_request.number }}.plash.dev'
+                body: '📖 **Documentation Preview**: https://plash-docs-pr-${{ github.event.pull_request.number }}.pla.sh'
               });
             }
 

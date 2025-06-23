@@ -114,11 +114,12 @@ def validate_app(path):
     if  deps and (path/"requirements.txt").exists(): 
         raise PlashError('A Plash app should not contain both a requirements.txt file and inline dependencies (see PEP723).')
 
-# %% ../nbs/00_core.ipynb 24
-def create_tar_archive(path:Path) -> tuple[io.BytesIO, int]:
+# %% ../nbs/00_core.ipynb 23
+def create_tar_archive(path:Path, force_data:bool=False) -> tuple[io.BytesIO, int]:
     "Creates a tar archive of a directory, excluding files based on is_included"
     tarz = io.BytesIO()
     files = L(path if path.is_file() else Path(path).iterdir()).filter(is_included)
+    if not force_data: files = files.filter(lambda f: f.name != 'data')
     with tarfile.open(fileobj=tarz, mode='w:gz') as tar:
         for f in files: tar.add(f, arcname=f.name)
         if deps:=_deps((path / 'main.py').read_bytes()):
@@ -139,9 +140,10 @@ def _gen_app_name():
 # %% ../nbs/00_core.ipynb 26
 @call_parse
 def deploy(
-    path:Path=Path('.'), # Path to project
-    name:str=None):  # Overrides the .plash file in project root if provided
-    "Deploy app to production (ignores paths starting with '.')"
+    path:Path=Path('.'),    # Path to project
+    name:str=None,          # Overrides the .plash file in project root if provided
+    force_data:bool=False): # Overwrite data/ directory during deployment
+    "Deploy app to production, ignores paths starting with '.', excludes data/ directory by default unless --force_data is used."
     print('Initializing deployment...')
     if name == '': print('Error: App name cannot be an empty string'); return
     if not path.is_dir(): print("Error: Path should point to the project directory"); return
@@ -154,9 +156,10 @@ def deploy(
         plash_app = path / '.plash'
         name = _gen_app_name()
         plash_app.write_text(f'export PLASH_APP_NAME={name}')
-        
-    tarz, _ = create_tar_archive(path)
-    resp = mk_auth_req(endpoint(rt="/upload"), "post", files={'file': tarz}, timeout=300.0, data={'name': name})
+    
+    tarz, _ = create_tar_archive(path, force_data)
+    resp = mk_auth_req(endpoint(rt="/upload"), "post", files={'file': tarz}, timeout=300.0, 
+                       data={'name': name, 'force_data': force_data})
     if resp.status_code == 200:
         print('✅ Upload complete! Your app is currently being built.')
         print(f'It will be live at {name if '.' in name else endpoint(sub=name)}')
