@@ -2,6 +2,13 @@
 
 <!-- do not remove -->
 
+## 0.1.3
+
+### New Features
+
+- create app names that adhere to the 3-4 words naming scheme ([#41](https://github.com/AnswerDotAI/plash_cli/issues/41))
+
+
 ## 0.1.2
 
 ### New Features
