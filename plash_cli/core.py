@@ -114,7 +114,7 @@ def validate_app(path):
     if  deps and (path/"requirements.txt").exists(): 
         raise PlashError('A Plash app should not contain both a requirements.txt file and inline dependencies (see PEP723).')
 
-# %% ../nbs/00_core.ipynb 23
+# %% ../nbs/00_core.ipynb 24
 def create_tar_archive(path:Path, force_data:bool=False) -> tuple[io.BytesIO, int]:
     "Creates a tar archive of a directory, excluding files based on is_included"
     tarz = io.BytesIO()
