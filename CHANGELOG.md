@@ -2,6 +2,14 @@
 
 <!-- do not remove -->
 
+## 0.2.0
+
+### New Features
+
+- add force data overwrite flag ([#46](https://github.com/AnswerDotAI/plash_cli/issues/46))
+
+
+
 ## 0.1.3
 
 ### New Features
