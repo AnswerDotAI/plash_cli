@@ -94,8 +94,8 @@ other popular python frameworks.
 
 > [!WARNING]
 >
-> Your app must run on port `5001` which is the default port for
-> FastHTML apps.
+> Your app must use port 5001, as this is the port exposed by Plash’s
+> Docker container. It also happens to be the default for FastHTML apps.
 
 And create the `requirements.txt` file:
 
