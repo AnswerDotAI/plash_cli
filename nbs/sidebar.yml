@@ -1,0 +1,19 @@
+website:
+  sidebar:
+    contents:
+      - index.ipynb
+      - 00_core.ipynb
+      - section: explains
+        contents:
+          - explains/00_docker_caching.ipynb
+          - explains/01_data_storage.ipynb
+          - explains/02_usage_billing.ipynb
+      - section: how_to
+        contents:
+          - how_to/00_env_vars.ipynb
+          - how_to/01_add_dependencies.ipynb
+          - how_to/02_add_custom_domain.ipynb
+          - how_to/03_restore_backups.ipynb
+      - section: reference
+        contents:
+          - reference/00_cli.ipynb
