@@ -162,7 +162,7 @@ def deploy(
                        data={'name': name, 'force_data': force_data})
     if resp.status_code == 200:
         print('✅ Upload complete! Your app is currently being built.')
-        print(f'It will be live at {name if '.' in name else endpoint(sub=name)}')
+        print(f"It will be live at {name if '.' in name else endpoint(sub=name)}")
     else: print(f'Failure: {resp.status_code}\n{resp.text}')
 
 # %% ../nbs/00_core.ipynb 28
