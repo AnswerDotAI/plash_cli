@@ -1,4 +1,4 @@
-import httpx, dotenv, json, base64, os, jwt, re
+import httpx, json, os, jwt, re
 from typing import Tuple
 from pathlib import Path
 
@@ -8,7 +8,6 @@ AUTH_PATH_GOOG_REDIRECT = '/goog_redirect'
 SESSION_KEY = 'plash_auth'
 
 PLASH_PRODUCTION = os.getenv('PLASH_PRODUCTION', '') == '1'
-IN_DOCKER = os.getenv('IN_DOCKER', '').lower() in ('true', '1', 'yes')
 AUTH_SERVER_PREFIX = os.getenv("PLASH_DOMAIN", "https://pla.sh")
 
 AUTH_SIGNIN_URL = AUTH_SERVER_PREFIX + AUTH_PATH_SIGNIN
