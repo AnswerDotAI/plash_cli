@@ -1,4 +1,4 @@
-import os, threading, time, uuid, jwt
+import os, threading, time, uuid, jwt, re
 from fasthtml.common import *
 
 APP_SIGNIN_PATH = "/signin_completed"
@@ -63,6 +63,8 @@ def _start_mock_server():
 
 
 def make_plash_signin_url(session: dict, required_email_pattern: str | None = None, required_hd_pattern: str | None = None) -> str | None:
+    if required_email_pattern: re.compile(required_email_pattern)
+    if required_hd_pattern: re.compile(required_hd_pattern)
     _start_mock_server()
     auth_id = str(uuid.uuid4())
     _pending_auths[auth_id] = {'required_email_pattern': required_email_pattern, 'required_hd_pattern': required_hd_pattern, 'callback_url': f"http://localhost:5001{APP_SIGNIN_PATH}"}

@@ -1,4 +1,4 @@
-import httpx, dotenv, json, base64, os, jwt
+import httpx, dotenv, json, base64, os, jwt, re
 from typing import Tuple
 from pathlib import Path
 
@@ -7,9 +7,8 @@ AUTH_PATH_SIGNIN = "/request_signin"
 AUTH_PATH_GOOG_REDIRECT = '/goog_redirect'
 SESSION_KEY = 'plash_auth'
 
-IN_PRODUCTION = os.getenv('IN_PRODUCTION', '').lower() in ('true', '1', 'yes')
+PLASH_PRODUCTION = os.getenv('PLASH_PRODUCTION', '') == '1'
 IN_DOCKER = os.getenv('IN_DOCKER', '').lower() in ('true', '1', 'yes')
-SHOULD_CHECK_JWT = os.getenv('SHOULD_CHECK_JWT', 'true').lower() in ('true', '1', 'yes')
 AUTH_SERVER_PREFIX = os.getenv("PLASH_DOMAIN", "https://pla.sh")
 
 AUTH_SIGNIN_URL = AUTH_SERVER_PREFIX + AUTH_PATH_SIGNIN
@@ -31,6 +30,8 @@ def _plash_auth_url(plash_app_id: str, plash_app_secret: str, required_email_pat
         return None
 
 def make_plash_signin_url(session: dict, required_email_pattern: str|None=None, required_hd_pattern: str|None=None) -> str | None:
+    if required_email_pattern: re.compile(required_email_pattern)
+    if required_hd_pattern: re.compile(required_hd_pattern)
     plash_app_id = os.environ['PLASH_APP_ID']
     plash_app_secret = os.environ['PLASH_APP_SECRET']
     retval = _plash_auth_url(plash_app_id, plash_app_secret, required_email_pattern, required_hd_pattern)
@@ -42,11 +43,7 @@ def make_plash_signin_url(session: dict, required_email_pattern: str|None=None, 
 class _PlashReply:
     def __init__(self, reply_str: str):
         try:
-            if SHOULD_CHECK_JWT:
-                decoded_jwt = jwt.decode(reply_str, key=open(AUTH_EC_PUBLIC_KEY_FILE,"rb").read(), algorithms=["ES256"], options=dict(verify_aud=False, verify_iss=False))
-                print("JWT crypto validation succeeded")
-            else:
-                decoded_jwt = jwt.decode(reply_str, options=dict(verify_signature=False))
+            decoded_jwt = jwt.decode(reply_str, key=open(AUTH_EC_PUBLIC_KEY_FILE,"rb").read(), algorithms=["ES256"], options=dict(verify_aud=False, verify_iss=False))
             self.authreq_id = decoded_jwt.get('jti')
             self.valid = True
             self.sub = decoded_jwt.get('sub')
