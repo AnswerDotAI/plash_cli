@@ -15,12 +15,19 @@ AUTH_REDIRECT_URL = AUTH_SERVER_PREFIX + AUTH_PATH_GOOG_REDIRECT
 AUTH_EC_PUBLIC_KEY_FILE = Path(__file__).parent / "assets" / "es256_public_key.pem"
 
 def _plash_auth_url(plash_app_id: str, plash_app_secret: str, required_email_pattern: str|None, required_hd_pattern: str|None) -> Tuple[str,dict[str,str]]|None:
-    payload = dict(plash_app_id=plash_app_id, required_email_pattern=required_email_pattern, required_hd_pattern=required_hd_pattern)
+    from plash_cli import __version__
+    payload = dict(
+        plash_app_id=plash_app_id, 
+        required_email_pattern=required_email_pattern, 
+        required_hd_pattern=required_hd_pattern
+    )
     try:
         with httpx.Client() as client:
+            client.headers.update({'X-PLASH-AUTH-VERSION': __version__})
             response = client.post(AUTH_SIGNIN_URL, json=payload, auth=(plash_app_id, plash_app_secret))
             response.raise_for_status()
             data = response.json()
+            if "warning" in data: print(f"⚠️  WARNING: {data['warning']}")
             url = data.get("plash_signin_url")
             session_kv = data.get("session_kv", {})
             return (url, session_kv) if url else None
