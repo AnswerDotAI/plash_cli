@@ -167,7 +167,7 @@ def deploy(
                        data={'name': name, 'force_data': force_data})
     if resp.status_code == 200:
         print('✅ Upload complete! Your app is currently being built.')
-        print(f'It will be live at {name if '.' in name else endpoint(sub=name)}')
+        print(f'It will be live at {name if "." in name else endpoint(sub=name)}')
     else: print(f'Failure: {resp.status_code}\n{resp.text}')
 
 # %% ../nbs/00_core.ipynb 29
@@ -273,5 +273,5 @@ def apps(verbose:bool=False):
     r = mk_auth_req(endpoint(rt="/user_apps")).raise_for_status()
     apps = r.json()
     if not apps: return "You don't have any deployed Plash apps."
-    if verbose: [print(f'{a['running']} {a['name']}') for a in apps]
+    if verbose: [print(f"{a['running']} {a['name']}") for a in apps]
     else: [print(a['name']) for a in apps]
