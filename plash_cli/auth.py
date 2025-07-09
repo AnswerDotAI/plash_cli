@@ -3,6 +3,10 @@ from typing import Tuple
 from pathlib import Path
 from warnings import warn
 
+class PlashAuthError(Exception):
+    """Raised when Plash authentication fails"""
+    pass
+
 APP_SIGNIN_PATH = "/signin_completed"
 AUTH_PATH_SIGNIN = "/request_signin"
 AUTH_PATH_GOOG_REDIRECT = '/goog_redirect'
@@ -64,6 +68,7 @@ class _PlashReply:
 def goog_id_from_signin_reply(session: dict, reply_str: str) -> str|None: 
     reply = _PlashReply(reply_str)
     if session[SESSION_KEY] != reply.authreq_id:
-        print("request originated from a different browser than the one receiving the reply")
-        return None
+        raise PlashAuthError("Request originated from a different browser than the one receiving the reply")
+    if reply.err:
+        raise PlashAuthError(f"Authentication failed: {reply.err}")
     return reply.sub if reply.valid else None
