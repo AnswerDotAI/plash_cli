@@ -137,13 +137,18 @@ def _gen_app_name():
     suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=3))
     return f"{random.choice(adjectives)}-{random.choice(nouns)}-{random.choice(verbs)}-{suffix}"
 
-# %% ../nbs/00_core.ipynb 26
+# %% ../nbs/00_core.ipynb 27
 @call_parse
 def deploy(
     path:Path=Path('.'),    # Path to project
     name:str=None,          # Overrides the .plash file in project root if provided
     force_data:bool=False): # Overwrite data/ directory during deployment
-    "Deploy app to production, ignores paths starting with '.', excludes data/ directory by default unless --force_data is used."
+    """
+    Deploys app to production. By default, this command erases all files in your app which are not in data/.
+    Then uploads all files and folders, except paths starting with '.' and except the local data/ directory.
+    If `--force data` is used, then it erases all files in production. Then it uploads all files and folders,
+    including `data/`, except paths starting with '.'.
+    """
     print('Initializing deployment...')
     if name == '': print('Error: App name cannot be an empty string'); return
     if not path.is_dir(): print("Error: Path should point to the project directory"); return
@@ -165,7 +170,7 @@ def deploy(
         print(f'It will be live at {name if '.' in name else endpoint(sub=name)}')
     else: print(f'Failure: {resp.status_code}\n{resp.text}')
 
-# %% ../nbs/00_core.ipynb 28
+# %% ../nbs/00_core.ipynb 29
 @call_parse
 def view(
     path:Path=Path('.'), # Path to project directory
@@ -177,7 +182,7 @@ def view(
     print(f"Opening browser to view app :\n{url}\n")
     webbrowser.open(url)
 
-# %% ../nbs/00_core.ipynb 30
+# %% ../nbs/00_core.ipynb 31
 @call_parse
 def delete(
     path:Path=Path('.'), # Path to project
@@ -195,7 +200,7 @@ def delete(
     r = mk_auth_req(endpoint(rt=f"/delete?name={name}"), "delete")
     return r.text
 
-# %% ../nbs/00_core.ipynb 32
+# %% ../nbs/00_core.ipynb 33
 def endpoint_func(endpoint_name):
     'Creates a function for a specific API endpoint'
     def func(
@@ -216,10 +221,10 @@ def endpoint_func(endpoint_name):
 stop = endpoint_func('/stop')
 start = endpoint_func('/start')
 
-# %% ../nbs/00_core.ipynb 34
+# %% ../nbs/00_core.ipynb 35
 log_modes = str_enum('log_modes', 'build', 'app')
 
-# %% ../nbs/00_core.ipynb 35
+# %% ../nbs/00_core.ipynb 36
 @call_parse
 def logs(
     path:Path=Path('.'),    # Path to project
@@ -245,7 +250,7 @@ def logs(
     r = mk_auth_req(endpoint(rt=f"/logs?name={name}&mode={mode}"))
     return r.text
 
-# %% ../nbs/00_core.ipynb 37
+# %% ../nbs/00_core.ipynb 38
 @call_parse
 def download(
     path:Path=Path('.'),                 # Path to project
@@ -261,7 +266,7 @@ def download(
         with tarfile.open(fileobj=file_bytes, mode="r:gz") as tar: tar.extractall(path=save_path)
         print(f"Downloaded your app to: {save_path}")
 
-# %% ../nbs/00_core.ipynb 39
+# %% ../nbs/00_core.ipynb 40
 @call_parse
 def apps(verbose:bool=False):
     "List your deployed apps (verbose shows status table: 1=running, 0=stopped)"
