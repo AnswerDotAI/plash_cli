@@ -1,6 +1,7 @@
 import httpx, json, os, jwt, re
 from typing import Tuple
 from pathlib import Path
+from warnings import warn
 
 APP_SIGNIN_PATH = "/signin_completed"
 AUTH_PATH_SIGNIN = "/request_signin"
@@ -27,7 +28,7 @@ def _plash_auth_url(plash_app_id: str, plash_app_secret: str, required_email_pat
             response = client.post(AUTH_SIGNIN_URL, json=payload, auth=(plash_app_id, plash_app_secret))
             response.raise_for_status()
             data = response.json()
-            if "warning" in data: print(f"⚠️  WARNING: {data['warning']}")
+            if "warning" in data: warn(data['warning'])
             url = data.get("plash_signin_url")
             session_kv = data.get("session_kv", {})
             return (url, session_kv) if url else None
