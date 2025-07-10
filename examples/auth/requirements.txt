@@ -1,6 +1,4 @@
 python-fasthtml
 fastcore 
 httpx>=0.28.1 
-python-dotenv 
-pyjwt
-cryptography
+git+https://github.com/AnswerDotAI/plash_cli.git@feat-add-oauth

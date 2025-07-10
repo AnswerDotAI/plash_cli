@@ -67,8 +67,6 @@ class _PlashReply:
 
 def goog_id_from_signin_reply(session: dict, reply_str: str) -> str|None: 
     reply = _PlashReply(reply_str)
-    if session[SESSION_KEY] != reply.authreq_id:
-        raise PlashAuthError("Request originated from a different browser than the one receiving the reply")
-    if reply.err:
-        raise PlashAuthError(f"Authentication failed: {reply.err}")
+    if session[SESSION_KEY] != reply.authreq_id: raise PlashAuthError("Request originated from a different browser than the one receiving the reply")
+    if reply.err: raise PlashAuthError(f"Authentication failed: {reply.err}")
     return reply.sub if reply.valid else None
