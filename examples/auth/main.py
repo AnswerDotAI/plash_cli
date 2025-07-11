@@ -45,7 +45,7 @@ def protected_page(session):
 
 @rt('/logout')
 def logout(session):
-    session.clear()
+    session.pop('user_id', None)
     return RedirectResponse('/', status_code=303)
 
 @rt(APP_SIGNIN_PATH)
