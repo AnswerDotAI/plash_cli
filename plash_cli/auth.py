@@ -1,7 +1,8 @@
-import httpx,json,os,jwt,re
-from typing import Tuple
+import httpx,os,jwt,re
 from pathlib import Path
 from warnings import warn
+
+from plash_cli import __version__
 
 class PlashAuthError(Exception):
     """Raised when Plash authentication fails"""
@@ -19,24 +20,17 @@ AUTH_SIGNIN_URL = AUTH_SERVER_PREFIX + AUTH_PATH_SIGNIN
 AUTH_REDIRECT_URL = AUTH_SERVER_PREFIX + AUTH_PATH_GOOG_REDIRECT
 AUTH_EC_PUBLIC_KEY_FILE = Path(__file__).parent / "assets" / "es256_public_key.pem"
 
-def _plash_auth_url(app_id: str, app_secret: str, email_pat: str|None, hd_pat: str|None) -> Tuple[str,dict[str,str]]|None:
-    from plash_cli import __version__
+def _plash_auth_url(app_id: str, app_secret: str, email_pat: str=None, hd_pat: str=None):
     payload = dict(plash_app_id=app_id, required_email_pattern=email_pat, required_hd_pattern=hd_pat)
-    try:
-        with httpx.Client() as client:
-            client.headers.update({'X-PLASH-AUTH-VERSION': __version__})
-            response = client.post(AUTH_SIGNIN_URL, json=payload, auth=(app_id, app_secret))
-            response.raise_for_status()
-            data = response.json()
-            if "warning" in data: warn(data['warning'])
-            url = data.get("plash_signin_url")
-            session_kv = data.get("session_kv", {})
-            return (url, session_kv) if url else None
-    except (httpx.HTTPError, json.JSONDecodeError) as e:
-        print(f"Auth request failed: {e}")
-        return None
+    data = httpx.post(AUTH_SIGNIN_URL, json=payload, auth=(app_id, app_secret), headers={'X-PLASH-AUTH-VERSION': __version__}).raise_for_status().json()
+    print(data)
+    if "warning" in data: warn(data.pop('warning'))
+    # return data
+    url = data.get("plash_signin_url")
+    session_kv = data.get("session_kv", {})
+    return (url, session_kv) if url else None
 
-def mk_plash_signin_url(session: dict, email_pat: str|None=None, hd_pat: str|None=None) -> str | None:
+def mk_plash_signin_url(session: dict, email_pat: str|None=None, hd_pat: str|None=None):
     if not in_prod: return f"{APP_SIGNIN_PATH}?signin_reply=mock-sign-in-reply"
     if email_pat: re.compile(email_pat)
     if hd_pat: re.compile(hd_pat)
