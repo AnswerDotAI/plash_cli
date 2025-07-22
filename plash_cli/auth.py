@@ -12,7 +12,7 @@ AUTH_PATH_SIGNIN = "/request_signin"
 AUTH_PATH_GOOG_REDIRECT = '/goog_redirect'
 SESSION_KEY = 'plash_auth'
 
-PLASH_PRODUCTION = os.getenv('PLASH_PRODUCTION', '') == '1'
+in_prod = os.getenv('PLASH_PRODUCTION', '') == '1'
 AUTH_SERVER_PREFIX = os.getenv("PLASH_DOMAIN", "https://auth.pla.sh")
 
 AUTH_SIGNIN_URL = AUTH_SERVER_PREFIX + AUTH_PATH_SIGNIN
@@ -37,6 +37,7 @@ def _plash_auth_url(app_id: str, app_secret: str, email_pat: str|None, hd_pat: s
         return None
 
 def mk_plash_signin_url(session: dict, email_pat: str|None=None, hd_pat: str|None=None) -> str | None:
+    if not in_prod: return f"{APP_SIGNIN_PATH}?signin_reply=mock-sign-in-reply"
     if email_pat: re.compile(email_pat)
     if hd_pat: re.compile(hd_pat)
     app_id,app_secret = os.environ['PLASH_APP_ID'],os.environ['PLASH_APP_SECRET']
@@ -54,7 +55,8 @@ def _parse_jwt(reply: str) -> dict:
     except Exception as e:
         return dict(auth_id=None, valid=False, sub=None, err=str(e))
 
-def signin_reply2goog_id(session: dict, reply: str) -> str|None: 
+def goog_id_from_signin_reply(session: dict, reply: str) -> str|None: 
+    if not in_prod: return '424242424242424242424'
     parsed = _parse_jwt(reply)
     if session[SESSION_KEY] != parsed['auth_id']: raise PlashAuthError("Request originated from a different browser than the one receiving the reply")
     if parsed['err']: raise PlashAuthError(f"Authentication failed: {parsed['err']}")
