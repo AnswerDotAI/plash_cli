@@ -15,9 +15,9 @@ in_prod = os.getenv('PLASH_PRODUCTION', '') == '1'
 AUTH_EC_PUBLIC_KEY_FILE = Path(__file__).parent / "assets" / "es256_public_key.pem"
 
 def _plash_signin_url(email_re: str=None, hd_re: str=None):
-    app_id, app_secret = os.environ['PLASH_APP_ID'], os.environ['PLASH_APP_SECRET']
-    res = httpx.post(os.environ['PLASH_AUTH_URL'], json=dict(app_id=app_id, email_re=email_re, hd_re=hd_re), 
-                     auth=(app_id, app_secret), headers={'X-PLASH-AUTH-VERSION': __version__}).raise_for_status().json()
+    res = httpx.post(os.environ['PLASH_AUTH_URL'], json=dict(email_re=email_re, hd_re=hd_re), 
+                     auth=(os.environ['PLASH_APP_ID'], os.environ['PLASH_APP_SECRET']), 
+                     headers={'X-PLASH-AUTH-VERSION': __version__}).raise_for_status().json()
     if "warning" in res: warn(res.pop('warning'))
     return res
 
