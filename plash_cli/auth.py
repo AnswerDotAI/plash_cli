@@ -24,19 +24,19 @@ def _plash_signin_url(email_re: str=None, hd_re: str=None):
 def mk_plash_signin_url(session: dict, email_re: str=None, hd_re: str=None):
     if not in_prod: return f"{APP_SIGNIN_PATH}?signin_reply=mock-sign-in-reply"
     res = _plash_signin_url(email_re, hd_re)
-    session.update(res['session_kv'])
+    session['req_id'] = res['req_id']
     return res['plash_signin_url']
 
 def _parse_jwt(reply: str) -> dict:
     "Parse JWT reply and return decoded claims or error info"
     try: decoded = jwt.decode(reply, key=open(AUTH_EC_PUBLIC_KEY_FILE,"rb").read(), algorithms=["ES256"], 
-                              options=dict(verify_aud=False, verify_iss=False)
-    except Exception as e: return dict(auth_id=None, valid=False, sub=None, err=f'JWT validation failed: {e}')
-    return dict(auth_id=decoded.get('jti'), valid=True, sub=decoded.get('sub'), err=decoded.get('err'))
+                              options=dict(verify_aud=False, verify_iss=False))
+    except Exception as e: return dict(req_id=None, valid=False, sub=None, err=f'JWT validation failed: {e}')
+    return dict(req_id=decoded.get('req_id'), valid=True, sub=decoded.get('sub'), err=decoded.get('err'))
 
 def goog_id_from_signin_reply(session: dict, reply: str) -> str|None: 
     if not in_prod: return '424242424242424242424'
     parsed = _parse_jwt(reply)
-    if session['plash_auth'] != parsed['auth_id']: raise PlashAuthError("Request originated from a different browser than the one receiving the reply")
+    if session['req_id'] != parsed['req_id']: raise PlashAuthError("Request originated from a different browser than the one receiving the reply")
     if parsed['err']: raise PlashAuthError(f"Authentication failed: {parsed['err']}")
     return parsed['sub'] if parsed['valid'] else None
