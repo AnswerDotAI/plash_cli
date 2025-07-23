@@ -166,7 +166,7 @@ def deploy(
     resp = mk_auth_req(endpoint(rt="/upload"), "post", files={'file': tarz}, timeout=300.0, 
                        data={'name': name, 'force_data': force_data})
     if resp.status_code == 200:
-        print('✅ Upload complete! Your app is currently being built.')
+        print('Upload complete! Your app is currently being built.')
         print(f'It will be live at {name if "." in name else endpoint(sub=name)}')
     else: print(f'Failure: {resp.status_code}\n{resp.text}')
 
