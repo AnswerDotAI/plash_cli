@@ -23,16 +23,15 @@ def index(session):
 
 @rt(APP_SIGNIN_PATH)
 def plash_signin_completed(session, signin_reply: str):
-    uid = goog_id_from_signin_reply(session, signin_reply)
-    if uid is None:
+    try: uid = goog_id_from_signin_reply(session, signin_reply)
+    except PlashAuthError as e: 
         return Div(
             H2("Login Failed"),
-            P("There was an error signing you in. Please try again."),
+            P(f"There was an error signing you in: {e}"),
             A("Try Again", href="/")
         )
-    else:
-        session['user_id'] = uid
-        return RedirectResponse('/', status_code=303)
+    session['user_id'] = uid
+    return RedirectResponse('/', status_code=303)
 
 @rt('/logout')
 def logout(session):
