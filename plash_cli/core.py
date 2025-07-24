@@ -110,7 +110,7 @@ def validate_app(path):
     "Validates directory `path` is a deployable Plash app"
     if not (path / 'main.py').exists():
         raise PlashError('A Plash app requires a main.py file.')
-    deps = _deps((path / 'main.py').read_text())
+    deps = _deps((path / 'main.py').read_text(encoding='utf-8'))
     if  deps and (path/"requirements.txt").exists(): 
         raise PlashError('A Plash app should not contain both a requirements.txt file and inline dependencies (see PEP723).')
 
@@ -137,7 +137,7 @@ def _gen_app_name():
     suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=3))
     return f"{random.choice(adjectives)}-{random.choice(nouns)}-{random.choice(verbs)}-{suffix}"
 
-# %% ../nbs/00_core.ipynb 27
+# %% ../nbs/00_core.ipynb 26
 @call_parse
 def deploy(
     path:Path=Path('.'),    # Path to project
@@ -170,7 +170,7 @@ def deploy(
         print(f'It will be live at {name if "." in name else endpoint(sub=name)}')
     else: print(f'Failure: {resp.status_code}\n{resp.text}')
 
-# %% ../nbs/00_core.ipynb 29
+# %% ../nbs/00_core.ipynb 28
 @call_parse
 def view(
     path:Path=Path('.'), # Path to project directory
@@ -182,7 +182,7 @@ def view(
     print(f"Opening browser to view app :\n{url}\n")
     webbrowser.open(url)
 
-# %% ../nbs/00_core.ipynb 31
+# %% ../nbs/00_core.ipynb 30
 @call_parse
 def delete(
     path:Path=Path('.'), # Path to project
@@ -200,7 +200,7 @@ def delete(
     r = mk_auth_req(endpoint(rt=f"/delete?name={name}"), "delete")
     return r.text
 
-# %% ../nbs/00_core.ipynb 33
+# %% ../nbs/00_core.ipynb 32
 def endpoint_func(endpoint_name):
     'Creates a function for a specific API endpoint'
     def func(
@@ -221,10 +221,10 @@ def endpoint_func(endpoint_name):
 stop = endpoint_func('/stop')
 start = endpoint_func('/start')
 
-# %% ../nbs/00_core.ipynb 35
+# %% ../nbs/00_core.ipynb 34
 log_modes = str_enum('log_modes', 'build', 'app')
 
-# %% ../nbs/00_core.ipynb 36
+# %% ../nbs/00_core.ipynb 35
 @call_parse
 def logs(
     path:Path=Path('.'),    # Path to project
@@ -250,7 +250,7 @@ def logs(
     r = mk_auth_req(endpoint(rt=f"/logs?name={name}&mode={mode}"))
     return r.text
 
-# %% ../nbs/00_core.ipynb 38
+# %% ../nbs/00_core.ipynb 37
 @call_parse
 def download(
     path:Path=Path('.'),                 # Path to project
@@ -266,7 +266,7 @@ def download(
         with tarfile.open(fileobj=file_bytes, mode="r:gz") as tar: tar.extractall(path=save_path)
         print(f"Downloaded your app to: {save_path}")
 
-# %% ../nbs/00_core.ipynb 40
+# %% ../nbs/00_core.ipynb 39
 @call_parse
 def apps(verbose:bool=False):
     "List your deployed apps (verbose shows status table: 1=running, 0=stopped)"
