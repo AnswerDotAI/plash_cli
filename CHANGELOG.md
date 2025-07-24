@@ -2,6 +2,14 @@
 
 <!-- do not remove -->
 
+## 0.2.2
+
+
+### Bugs Squashed
+
+- UnicodeDecodeError: 'charmap' codec can't decode byte 0x9d in position 107: character maps to <undefined> ([#56](https://github.com/AnswerDotAI/plash_cli/issues/56))
+
+
 ## 0.2.1
 
 ### New Features
