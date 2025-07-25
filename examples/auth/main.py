@@ -2,7 +2,6 @@ import os
 from fasthtml.common import *
 from plash_cli.auth import *
 
-IN_PROD = os.getenv('PLASH_PRODUCTION')
 app, rt = fast_app()
 
 @rt
@@ -21,8 +20,8 @@ def index(session):
             A("Sign in with Google", href=mk_plash_signin_url(session))
         )
 
-@rt(APP_SIGNIN_PATH)
-def plash_signin_completed(session, signin_reply: str):
+@rt(signin_completed_rt)
+def signin_completed(session, signin_reply: str):
     try: uid = goog_id_from_signin_reply(session, signin_reply)
     except PlashAuthError as e: 
         return Div(
