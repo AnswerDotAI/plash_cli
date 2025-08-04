@@ -55,6 +55,6 @@ def goog_id_from_signin_reply(session: dict, # Session dictionary containing 're
     "Validate Google sign-in reply and returns Google user ID if valid."
     if not _in_prod: return '424242424242424242424'
     parsed = _parse_jwt(reply)
-    if session['req_id'] != parsed['req_id']: raise PlashAuthError("Request originated from a different browser than the one receiving the reply")
+    if session.get('req_id') != parsed['req_id']: raise PlashAuthError("Request originated from a different browser than the one receiving the reply")
     if parsed['err']: raise PlashAuthError(f"Authentication failed: {parsed['err']}")
     return parsed['sub']
