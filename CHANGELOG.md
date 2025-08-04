@@ -2,6 +2,13 @@
 
 <!-- do not remove -->
 
+## 0.3.0
+
+### New Features
+
+- Add Plash Auth ([#54](https://github.com/AnswerDotAI/plash_cli/pull/54)), thanks to [@RensDimmendaal](https://github.com/RensDimmendaal)
+
+
 ## 0.2.2
 
 
