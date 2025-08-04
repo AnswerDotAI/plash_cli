@@ -41,8 +41,8 @@ def _parse_jwt(reply: str) -> dict:
     "Parse JWT reply and return decoded claims or error info"
     try: decoded = jwt.decode(reply, key=open(Path(__file__).parent / "assets" / "es256_public_key.pem","rb").read(), algorithms=["ES256"], 
                               options=dict(verify_aud=False, verify_iss=False))
-    except Exception as e: return dict(req_id=None, valid=False, sub=None, err=f'JWT validation failed: {e}')
-    return dict(req_id=decoded.get('req_id'), valid=True, sub=decoded.get('sub'), err=decoded.get('err'))
+    except Exception as e: return dict(req_id=None, sub=None, err=f'JWT validation failed: {e}')
+    return dict(req_id=decoded.get('req_id'), sub=decoded.get('sub'), err=decoded.get('err'))
 
 # %% ../nbs/01_auth.ipynb 15
 class PlashAuthError(Exception):
@@ -57,4 +57,4 @@ def goog_id_from_signin_reply(session: dict, # Session dictionary containing 're
     parsed = _parse_jwt(reply)
     if session['req_id'] != parsed['req_id']: raise PlashAuthError("Request originated from a different browser than the one receiving the reply")
     if parsed['err']: raise PlashAuthError(f"Authentication failed: {parsed['err']}")
-    return parsed['sub'] if parsed['valid'] else None
+    return parsed['sub']
