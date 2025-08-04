@@ -1,2 +1,2 @@
 python-fasthtml
-git+https://github.com/AnswerDotAI/plash_cli.git@feat-add-oauth
+plash-cli
