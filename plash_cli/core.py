@@ -110,7 +110,7 @@ def validate_app(path):
     "Validates directory `path` is a deployable Plash app"
     if not (path / 'main.py').exists():
         raise PlashError('A Plash app requires a main.py file.')
-    deps = _deps((path / 'main.py').read_text())
+    deps = _deps((path / 'main.py').read_text(encoding='utf-8'))
     if  deps and (path/"requirements.txt").exists(): 
         raise PlashError('A Plash app should not contain both a requirements.txt file and inline dependencies (see PEP723).')
 
@@ -143,7 +143,12 @@ def deploy(
     path:Path=Path('.'),    # Path to project
     name:str=None,          # Overrides the .plash file in project root if provided
     force_data:bool=False): # Overwrite data/ directory during deployment
-    "Deploy app to production, ignores paths starting with '.', excludes data/ directory by default unless --force_data is used."
+    """
+    Deploys app to production. By default, this command erases all files in your app which are not in data/.
+    Then uploads all files and folders, except paths starting with '.' and except the local data/ directory.
+    If `--force data` is used, then it erases all files in production. Then it uploads all files and folders,
+    including `data/`, except paths starting with '.'.
+    """
     print('Initializing deployment...')
     if name == '': print('Error: App name cannot be an empty string'); return
     if not path.is_dir(): print("Error: Path should point to the project directory"); return
@@ -162,7 +167,7 @@ def deploy(
                        data={'name': name, 'force_data': force_data})
     if resp.status_code == 200:
         print('✅ Upload complete! Your app is currently being built.')
-        print(f'It will be live at {name if '.' in name else endpoint(sub=name)}')
+        print(f'It will be live at {name if "." in name else endpoint(sub=name)}')
     else: print(f'Failure: {resp.status_code}\n{resp.text}')
 
 # %% ../nbs/00_core.ipynb 28
@@ -268,5 +273,5 @@ def apps(verbose:bool=False):
     r = mk_auth_req(endpoint(rt="/user_apps")).raise_for_status()
     apps = r.json()
     if not apps: return "You don't have any deployed Plash apps."
-    if verbose: [print(f'{a['running']} {a['name']}') for a in apps]
+    if verbose: [print(f"{a['running']} {a['name']}") for a in apps]
     else: [print(a['name']) for a in apps]

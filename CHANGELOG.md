@@ -2,6 +2,27 @@
 
 <!-- do not remove -->
 
+## 0.2.2
+
+
+### Bugs Squashed
+
+- UnicodeDecodeError: 'charmap' codec can't decode byte 0x9d in position 107: character maps to <undefined> ([#56](https://github.com/AnswerDotAI/plash_cli/issues/56))
+
+
+## 0.2.1
+
+### New Features
+
+- fix wording around plash deploy ([#53](https://github.com/AnswerDotAI/plash_cli/issues/53))
+
+### Bugs Squashed
+
+- Unable to `plash_login` ([#52](https://github.com/AnswerDotAI/plash_cli/issues/52))
+
+- Fix quoting issue ([#51](https://github.com/AnswerDotAI/plash_cli/pull/51)), thanks to [@thomasht86](https://github.com/thomasht86)
+
+
 ## 0.2.0
 
 ### New Features
