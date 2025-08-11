@@ -12,6 +12,10 @@ class Todo:
     title: str
     completed: bool = False
 
+# Use the PLASH_PRODUCTION environment variable to select the database file.
+# Plash sets this variable automatically.
+# Store the database file in the data/ folder.
+# By default, `plash_deploy` does not overwrite the data/ folder to protect production data.
 db = database("data/prod.db" if os.getenv("PLASH_PRODUCTION") else "data/dev.db")
 todos = db.create(Todo, transform=True)
 
