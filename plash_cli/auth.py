@@ -5,7 +5,7 @@
 # %% auto 0
 __all__ = ['signin_completed_rt', 'mk_signin_url', 'PlashAuthError', 'goog_id_from_signin_reply']
 
-# %% ../nbs/01_auth.ipynb 3
+# %% ../nbs/01_auth.ipynb 4
 import httpx,os,jwt
 from pathlib import Path
 from warnings import warn
@@ -13,12 +13,9 @@ from warnings import warn
 from . import __version__
 
 # %% ../nbs/01_auth.ipynb 5
-signin_completed_rt = "/signin_completed"
-
-# %% ../nbs/01_auth.ipynb 7
 _in_prod = os.getenv('PLASH_PRODUCTION', '') == '1'
 
-# %% ../nbs/01_auth.ipynb 9
+# %% ../nbs/01_auth.ipynb 6
 def _signin_url(email_re: str=None, hd_re: str=None):
     res = httpx.post(os.environ['PLASH_AUTH_URL'], json=dict(email_re=email_re, hd_re=hd_re), 
                      auth=(os.environ['PLASH_APP_ID'], os.environ['PLASH_APP_SECRET']), 
@@ -26,7 +23,10 @@ def _signin_url(email_re: str=None, hd_re: str=None):
     if "warning" in res: warn(res.pop('warning'))
     return res
 
-# %% ../nbs/01_auth.ipynb 11
+# %% ../nbs/01_auth.ipynb 8
+signin_completed_rt = "/signin_completed"
+
+# %% ../nbs/01_auth.ipynb 10
 def mk_signin_url(session: dict,       # Session dictionary
                         email_re: str=None,  # Regex filter for allowed email addresses
                         hd_re: str=None):    # Regex filter for allowed Google hosted domains
@@ -36,7 +36,7 @@ def mk_signin_url(session: dict,       # Session dictionary
     session['req_id'] = res['req_id']
     return res['plash_signin_url']
 
-# %% ../nbs/01_auth.ipynb 13
+# %% ../nbs/01_auth.ipynb 12
 def _parse_jwt(reply: str) -> dict:
     "Parse JWT reply and return decoded claims or error info"
     try: decoded = jwt.decode(reply, key=open(Path(__file__).parent / "assets" / "es256_public_key.pem","rb").read(), algorithms=["ES256"], 
@@ -44,12 +44,12 @@ def _parse_jwt(reply: str) -> dict:
     except Exception as e: return dict(req_id=None, sub=None, err=f'JWT validation failed: {e}')
     return dict(req_id=decoded.get('req_id'), sub=decoded.get('sub'), err=decoded.get('err'))
 
-# %% ../nbs/01_auth.ipynb 15
+# %% ../nbs/01_auth.ipynb 14
 class PlashAuthError(Exception):
     """Raised when Plash authentication fails"""
     pass
 
-# %% ../nbs/01_auth.ipynb 17
+# %% ../nbs/01_auth.ipynb 16
 def goog_id_from_signin_reply(session: dict, # Session dictionary containing 'req_id'
                               reply: str):   # The JWT reply string from Plash after Google authentication
     "Validate Google sign-in reply and returns Google user ID if valid."

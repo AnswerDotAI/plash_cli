@@ -26,7 +26,7 @@ website:
     left:
       - text: "Home"
         href: https://pla.sh
-      - text: "Learn"
+      - text: "Docs"
         href: https://docs.pla.sh
     right:
       - icon: github
@@ -44,6 +44,8 @@ website:
       - section: Explanations
         contents: explains/*
       - section: Reference
-        contents: reference/*
+        contents: 
+        - 00_cli.ipynb
+        - 01_auth.ipynb
 
 metadata-files: [nbdev.yml]
