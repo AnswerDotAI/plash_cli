@@ -146,9 +146,9 @@ def deploy(
     force_data:bool=False): # Overwrite data/ directory during deployment
     """
     Deploys app to production. By default, this command erases all files in your app which are not in data/.
-    Then uploads all files and folders, except paths starting with '.' and except the local data/ directory.
-    If `--force data` is used, then it erases all files in production. Then it uploads all files and folders,
-    including `data/`, except paths starting with '.'.
+    Then uploads all files and folders, except paths starting with `.` and except the local data/ directory.
+    If `--force_data` is used, then it erases all files in production. Then it uploads all files and folders,
+    including `data/`, except paths starting with `.`.
     """
     print('Initializing deployment...')
     if name == '': print('Error: App name cannot be an empty string'); return
