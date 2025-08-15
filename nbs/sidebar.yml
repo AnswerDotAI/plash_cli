@@ -2,7 +2,7 @@ website:
   sidebar:
     contents:
       - index.ipynb
-      - 00_core.ipynb
+      - 00_cli.ipynb
       - 01_auth.ipynb
       - section: explains
         contents:
@@ -16,6 +16,3 @@ website:
           - how_to/02_add_custom_domain.ipynb
           - how_to/03_restore_backups.ipynb
           - how_to/04_auth.ipynb
-      - section: reference
-        contents:
-          - reference/00_cli.ipynb
