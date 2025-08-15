@@ -19,7 +19,7 @@ from . import __version__
 
 # %% ../nbs/00_cli.ipynb 6
 PLASH_CONFIG_HOME = xdg_config_home() / 'plash_config.json'
-PLASH_DOMAIN = os.getenv("PLASH_DOMAIN","pla.sh")  # pla.sh plash-dev.answer.ai localhost:5002
+PLASH_DOMAIN = os.getenv("PLASH_DOMAIN","pla.sh")
 
 # %% ../nbs/00_cli.ipynb 7
 def _get_client(cookie_file):
@@ -32,7 +32,10 @@ def _get_client(cookie_file):
     return client
 
 # %% ../nbs/00_cli.ipynb 8
-def _mk_auth_req(url:str, method:str='get', **kwargs): return getattr(_get_client(PLASH_CONFIG_HOME), method)(url, **kwargs)
+def _mk_auth_req(url:str, method:str='get', **kwargs): 
+    res = getattr(_get_client(PLASH_CONFIG_HOME), method)(url, **kwargs)
+    if err:=res.headers.get('X-Plash-Error'): raise PlashError(err)
+    return res
 
 # %% ../nbs/00_cli.ipynb 9
 def _get_app_name(path:Path):
@@ -169,7 +172,7 @@ def deploy(
     if resp.status_code == 200:
         print('✅ Upload complete! Your app is currently being built.')
         print(f'It will be live at {name if "." in name else _endpoint(sub=name)}')
-    else: print(f'Failure: {resp.status_code}\n{resp.text}')
+    else: print(f'Failure: {resp.text}')
 
 # %% ../nbs/00_cli.ipynb 27
 @call_parse
