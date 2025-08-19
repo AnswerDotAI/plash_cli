@@ -2,6 +2,14 @@
 
 <!-- do not remove -->
 
+## 0.3.2
+
+
+### Bugs Squashed
+
+- fix renames and better handle error msgs ([#63](https://github.com/AnswerDotAI/plash_cli/pull/63)), thanks to [@ncoop57](https://github.com/ncoop57)
+
+
 
 ## 0.3.1
 
