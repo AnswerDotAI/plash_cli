@@ -32,7 +32,10 @@ def _get_client(cookie_file):
     return client
 
 # %% ../nbs/00_cli.ipynb 8
-def _mk_auth_req(url:str, method:str='get', **kwargs): return getattr(_get_client(PLASH_CONFIG_HOME), method)(url, **kwargs)
+def _mk_auth_req(url:str, method:str='get', **kwargs):
+    r = getattr(_get_client(PLASH_CONFIG_HOME), method)(url, **kwargs)
+    if r.status_code == 200: return r
+    else: print(f'Failure: {r.headers["X-Plash-Error"]}')
 
 # %% ../nbs/00_cli.ipynb 9
 def _get_app_name(path:Path):
@@ -164,12 +167,11 @@ def deploy(
         plash_app.write_text(f'export PLASH_APP_NAME={name}')
     
     tarz, _ = create_tar_archive(path, force_data)
-    resp = _mk_auth_req(_endpoint(rt="/upload"), "post", files={'file': tarz}, timeout=300.0, 
-                       data={'name': name, 'force_data': force_data})
-    if resp.status_code == 200:
+    r = _mk_auth_req(_endpoint(rt="/upload"), "post", files={'file': tarz}, timeout=300.0, 
+                     data={'name': name, 'force_data': force_data})
+    if r:
         print('✅ Upload complete! Your app is currently being built.')
         print(f'It will be live at {name if "." in name else _endpoint(sub=name)}')
-    else: print(f'Failure: {resp.status_code}\n{resp.text}')
 
 # %% ../nbs/00_cli.ipynb 27
 @call_parse
@@ -198,24 +200,21 @@ def delete(
             return
     
     print(f"Deleting app '{name}'...")
-    r = _mk_auth_req(_endpoint(rt=f"/delete?name={name}"), "delete")
-    return r.text
+    if r := _mk_auth_req(_endpoint(rt=f"/delete?name={name}"), "delete"): return r.text
 
 # %% ../nbs/00_cli.ipynb 33
 @call_parse
 def start(path:Path=Path('.'), name:str=None):
     "Start your deployed app"
     if not name: name = _get_app_name(path)
-    r = _mk_auth_req(_endpoint(rt=f"/start?name={name}"))
-    return r.text
+    if r := _mk_auth_req(_endpoint(rt=f"/start?name={name}")): return r.text
 
 # %% ../nbs/00_cli.ipynb 36
 @call_parse  
 def stop(path:Path=Path('.'), name:str=None):
     "Stop your deployed app" 
     if not name: name = _get_app_name(path)
-    r = _mk_auth_req(_endpoint(rt=f"/stop?name={name}"))
-    return r.text
+    if r := _mk_auth_req(_endpoint(rt=f"/stop?name={name}")): return r.text
 
 # %% ../nbs/00_cli.ipynb 39
 log_modes = str_enum('log_modes', 'build', 'app')
@@ -233,18 +232,13 @@ def logs(
         text = ''
         while True:
             try:
-                r = _mk_auth_req(_endpoint(rt=f"/logs?name={name}&mode={mode}"))
-                if r.status_code == 200:
+                if r := _mk_auth_req(_endpoint(rt=f"/logs?name={name}&mode={mode}")):
                     print(r.text[len(text):], end='') # Only print updates
                     text = r.text
                     if mode == 'build' and 'Build End Time:' in r.text: break
                     sleep(1)
-                else:
-                    print(f"Error: {r.status_code}")
-            except KeyboardInterrupt:
-                return "\nExiting"
-    r = _mk_auth_req(endpoint(rt=f"/logs?name={name}&mode={mode}"))
-    return r.text
+            except KeyboardInterrupt: return "\nExiting"
+    if r := _mk_auth_req(_endpoint(rt=f"/logs?name={name}&mode={mode}")): return r.text
 
 # %% ../nbs/00_cli.ipynb 43
 @call_parse
@@ -257,17 +251,18 @@ def download(
     try: save_path.mkdir(exist_ok=False)
     except: print(f"ERROR: Save path ({save_path}) already exists. Please rename or delete this folder to avoid accidental overwrites.")
     else:
-        response = mk_auth_req(_endpoint(rt=f'/download?name={name}')).raise_for_status()
-        file_bytes = io.BytesIO(response.content)
-        with tarfile.open(fileobj=file_bytes, mode="r:gz") as tar: tar.extractall(path=save_path)
-        print(f"Downloaded your app to: {save_path}")
+        if r := _mk_auth_req(_endpoint(rt=f'/download?name={name}')):
+            file_bytes = io.BytesIO(r.content)
+            with tarfile.open(fileobj=file_bytes, mode="r:gz") as tar: tar.extractall(path=save_path)
+            print(f"Downloaded your app to: {save_path}")        
 
 # %% ../nbs/00_cli.ipynb 46
 @call_parse
 def apps(verbose:bool=False):
     "List your deployed apps (verbose shows status table: 1=running, 0=stopped)"
-    r = _mk_auth_req(_endpoint(rt="/user_apps")).raise_for_status()
-    apps = r.json()
-    if not apps: return "You don't have any deployed Plash apps."
-    if verbose: [print(f"{a['running']} {a['name']}") for a in apps]
-    else: [print(a['name']) for a in apps]
+    r = _mk_auth_req(_endpoint(rt="/user_apps"))
+    if r:
+        apps = r.json()
+        if not apps: return "You don't have any deployed Plash apps."
+        if verbose: [print(f"{a['running']} {a['name']}") for a in apps]
+        else: [print(a['name']) for a in apps]
