@@ -190,7 +190,7 @@ def delete(
     name:str=None,     # Overrides the .plash file in project root if provided
     force:bool=False):   # Skip confirmation prompt
     'Delete your deployed app'
-    if not name: name = get_app_name(path)
+    if not name: name = _get_app_name(path)
     if not force:
         confirm = input(f"Are you sure you want to delete app '{name}'? This action cannot be undone. [y/N]: ")
         if confirm.lower() not in ['y', 'yes']:
@@ -205,7 +205,7 @@ def delete(
 @call_parse
 def start(path:Path=Path('.'), name:str=None):
     "Start your deployed app"
-    if not name: name = get_app_name(path)
+    if not name: name = _get_app_name(path)
     r = _mk_auth_req(_endpoint(rt=f"/start?name={name}"))
     return r.text
 
@@ -213,7 +213,7 @@ def start(path:Path=Path('.'), name:str=None):
 @call_parse  
 def stop(path:Path=Path('.'), name:str=None):
     "Stop your deployed app" 
-    if not name: name = get_app_name(path)
+    if not name: name = _get_app_name(path)
     r = _mk_auth_req(_endpoint(rt=f"/stop?name={name}"))
     return r.text
 
@@ -253,7 +253,7 @@ def download(
     name:str=None,                       # Overrides the .plash file in project root if provided
     save_path:Path=Path("./download/")): # Save path (optional)
     'Download your deployed app'
-    if not name: name = get_app_name(path)
+    if not name: name = _get_app_name(path)
     try: save_path.mkdir(exist_ok=False)
     except: print(f"ERROR: Save path ({save_path}) already exists. Please rename or delete this folder to avoid accidental overwrites.")
     else:
