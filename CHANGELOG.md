@@ -2,6 +2,19 @@
 
 <!-- do not remove -->
 
+## 0.3.1
+
+### New Features
+
+- use implementation nbs as ref docs instead of separate ([#60](https://github.com/AnswerDotAI/plash_cli/pull/60)), thanks to [@RensDimmendaal](https://github.com/RensDimmendaal)
+
+- Base marimo example ([#59](https://github.com/AnswerDotAI/plash_cli/pull/59)), thanks to [@koaning](https://github.com/koaning)
+
+### Bugs Squashed
+
+- fix `_get_app_name` refs ([#62](https://github.com/AnswerDotAI/plash_cli/pull/62)), thanks to [@KeremTurgutlu](https://github.com/KeremTurgutlu)
+
+
 ## 0.3.0
 
 ### New Features

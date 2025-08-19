@@ -157,7 +157,7 @@ def deploy(
     except PlashError as e: print(f"Error: {str(e)}\nInvalid path: {path}"); return
     
     try: 
-        if not name: name = get_app_name(path)
+        if not name: name = _get_app_name(path)
     except FileNotFoundError:
         plash_app = path / '.plash'
         name = _gen_app_name()
