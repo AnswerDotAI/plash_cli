@@ -32,8 +32,8 @@ def _get_client(cookie_file):
     return client
 
 # %% ../nbs/00_cli.ipynb 8
-def _mk_auth_req(url:str, method:str='get', **kwargs):
-    r = getattr(_get_client(PLASH_CONFIG_HOME), method)(url, **kwargs)
+def _mk_auth_req(url:str, method:str='get', timeout=300., **kwargs):
+    r = getattr(_get_client(PLASH_CONFIG_HOME), method)(url, timeout, **kwargs)
     if r.status_code == 200: return r
     else: print(f'Failure: {r.headers["X-Plash-Error"]}')
 
@@ -167,7 +167,7 @@ def deploy(
         plash_app.write_text(f'export PLASH_APP_NAME={name}')
     
     tarz, _ = create_tar_archive(path, force_data)
-    r = _mk_auth_req(_endpoint(rt="/upload"), "post", files={'file': tarz}, timeout=300.0, 
+    r = _mk_auth_req(_endpoint(rt="/upload"), "post", files={'file': tarz},
                      data={'name': name, 'force_data': force_data})
     if r:
         print('✅ Upload complete! Your app is currently being built.')
@@ -240,7 +240,11 @@ def logs(
             except KeyboardInterrupt: return "\nExiting"
     if r := _mk_auth_req(_endpoint(rt=f"/logs?name={name}&mode={mode}")): return r.text
 
-# %% ../nbs/00_cli.ipynb 43
+# %% ../nbs/00_cli.ipynb 44
+@patch
+def _is_dir_empty(self:Path): return next(self.iterdir(), None) is None
+
+# %% ../nbs/00_cli.ipynb 47
 @call_parse
 def download(
     path:Path=Path('.'),                 # Path to project
@@ -248,15 +252,17 @@ def download(
     save_path:Path=Path("./download/")): # Save path (optional)
     'Download your deployed app'
     if not name: name = _get_app_name(path)
-    try: save_path.mkdir(exist_ok=False)
-    except: print(f"ERROR: Save path ({save_path}) already exists. Please rename or delete this folder to avoid accidental overwrites.")
+    save_path.mkdir(exist_ok=True)
+    try:
+        if not save_path._is_dir_empty(): return print(f'ERROR: Save path ({save_path}) is not empty.')
+    except: return print(f"ERROR: Save path ({save_path}) is not a directory.")
     else:
         if r := _mk_auth_req(_endpoint(rt=f'/download?name={name}')):
             file_bytes = io.BytesIO(r.content)
             with tarfile.open(fileobj=file_bytes, mode="r:gz") as tar: tar.extractall(path=save_path)
             print(f"Downloaded your app to: {save_path}")        
 
-# %% ../nbs/00_cli.ipynb 46
+# %% ../nbs/00_cli.ipynb 50
 @call_parse
 def apps(verbose:bool=False):
     "List your deployed apps (verbose shows status table: 1=running, 0=stopped)"
