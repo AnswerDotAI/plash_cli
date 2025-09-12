@@ -33,7 +33,7 @@ def _get_client(cookie_file):
 
 # %% ../nbs/00_cli.ipynb 8
 def _mk_auth_req(url:str, method:str='get', timeout=300., **kwargs):
-    r = getattr(_get_client(PLASH_CONFIG_HOME), method)(url, timeout, **kwargs)
+    r = getattr(_get_client(PLASH_CONFIG_HOME), method)(url, timeout=timeout, **kwargs)
     if r.status_code == 200: return r
     else: print(f'Failure: {r.headers["X-Plash-Error"]}')
 
@@ -253,14 +253,10 @@ def download(
     'Download your deployed app'
     if not name: name = _get_app_name(path)
     save_path.mkdir(exist_ok=True)
-    try:
-        if not save_path._is_dir_empty(): return print(f'ERROR: Save path ({save_path}) is not empty.')
-    except: return print(f"ERROR: Save path ({save_path}) is not a directory.")
-    else:
-        if r := _mk_auth_req(_endpoint(rt=f'/download?name={name}')):
-            file_bytes = io.BytesIO(r.content)
-            with tarfile.open(fileobj=file_bytes, mode="r:gz") as tar: tar.extractall(path=save_path)
-            print(f"Downloaded your app to: {save_path}")        
+    if not save_path._is_dir_empty(): return print(f'ERROR: Save path ({save_path}) is not empty.')
+    if r := _mk_auth_req(_endpoint(rt=f'/download?name={name}')):
+        with tarfile.open(fileobj=io.BytesIO(r.content), mode="r:gz") as tar: tar.extractall(path=save_path)
+        print(f"Downloaded your app to: {save_path}")        
 
 # %% ../nbs/00_cli.ipynb 50
 @call_parse
