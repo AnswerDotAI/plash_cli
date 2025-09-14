@@ -2,6 +2,14 @@
 
 <!-- do not remove -->
 
+## 0.3.3
+
+### New Features
+
+- plash_download should overwrite empty dirs ([#64](https://github.com/AnswerDotAI/plash_cli/issues/64))
+
+
+
 ## 0.3.2
 
 
