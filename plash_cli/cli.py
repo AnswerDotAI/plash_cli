@@ -50,11 +50,14 @@ def _get_app_name(path:Path):
 
 
 # %% ../nbs/00_cli.ipynb 10
+def _prep(path,name): return name if name else _get_app_name(Path(path))
+
+# %% ../nbs/00_cli.ipynb 11
 def _endpoint(sub='', rt=''):
     p = "http" if "localhost" in PLASH_DOMAIN else "https"
     return f"{p}://{sub}{'.' if sub else ''}{PLASH_DOMAIN}{rt}"
 
-# %% ../nbs/00_cli.ipynb 11
+# %% ../nbs/00_cli.ipynb 12
 def _is_included(path):
     "Returns True if path should be included in deployment"
     if path.name.startswith('.'): return False
@@ -64,10 +67,10 @@ def _is_included(path):
                 '.vscode', '.idea', '.sesskey'}
     return not any(p in excludes for p in path.parts)
 
-# %% ../nbs/00_cli.ipynb 12
+# %% ../nbs/00_cli.ipynb 13
 class PlashError(Exception): pass
 
-# %% ../nbs/00_cli.ipynb 13
+# %% ../nbs/00_cli.ipynb 14
 def _poll_cookies(paircode, interval=1, timeout=180):
     "Poll server for token until received or timeout"
     start = time()
@@ -78,7 +81,7 @@ def _poll_cookies(paircode, interval=1, timeout=180):
         if resp.text.strip(): return dict(client.cookies)
         sleep(interval)
 
-# %% ../nbs/00_cli.ipynb 14
+# %% ../nbs/00_cli.ipynb 15
 @call_parse
 def login(
     token:str=None,  # Token to save directly to config
@@ -102,7 +105,7 @@ def login(
         print(f"Authentication successful! Config saved to {PLASH_CONFIG_HOME}")
     else: print("Authentication timed out.")
 
-# %% ../nbs/00_cli.ipynb 17
+# %% ../nbs/00_cli.ipynb 18
 pat = r'(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$'
 
 def _deps(script: bytes | str):
@@ -117,7 +120,7 @@ def _deps(script: bytes | str):
         return '\n'.join(tomllib.loads(content)['dependencies'])
     else: return None
 
-# %% ../nbs/00_cli.ipynb 19
+# %% ../nbs/00_cli.ipynb 20
 def _validate_app(path):
     "Validates directory `path` is a deployable Plash app"
     if not (path / 'main.py').exists():
@@ -126,7 +129,7 @@ def _validate_app(path):
     if  deps and (path/"requirements.txt").exists(): 
         raise PlashError('A Plash app should not contain both a requirements.txt file and inline dependencies (see PEP723).')
 
-# %% ../nbs/00_cli.ipynb 22
+# %% ../nbs/00_cli.ipynb 23
 def create_tar_archive(path:Path, force_data:bool=False) -> tuple[io.BytesIO, int]:
     "Creates a tar archive of a directory, excluding files based on is_included"
     tarz = io.BytesIO()
@@ -141,10 +144,9 @@ def create_tar_archive(path:Path, force_data:bool=False) -> tuple[io.BytesIO, in
     tarz.seek(0)
     return tarz, len(files)
 
-# %% ../nbs/00_cli.ipynb 23
-@call_parse
+# %% ../nbs/00_cli.ipynb 24
 def deploy(
-    path:Path=Path('.'),    # Path to project
+    path:Path='.',    # Path to project
     name:str=None,          # Overrides the .plash file in project root if provided
     force_data:bool=False): # Overwrite data/ directory during deployment
     """
@@ -153,11 +155,10 @@ def deploy(
     If `--force_data` is used, then it erases all files in production. Then it uploads all files and folders,
     including `data/`, except paths starting with `.`.
     """
-    print('Initializing deployment...')
-    if name == '': print('Error: App name cannot be an empty string'); return
-    if not path.is_dir(): print("Error: Path should point to the project directory"); return
-    try: _validate_app(path)
-    except PlashError as e: print(f"Error: {str(e)}\nInvalid path: {path}"); return
+    path = Path(path)
+    if name == '': raise PlashError('App name cannot be an empty string')
+    if not path.is_dir(): raise PlashError("Path should point to the project directory")
+    _validate_app(path)
     
     try: 
         if not name: name = _get_app_name(path)
@@ -169,103 +170,158 @@ def deploy(
     tarz, _ = create_tar_archive(path, force_data)
     r = _mk_auth_req(_endpoint(rt="/upload"), "post", files={'file': tarz},
                      data={'name': name, 'force_data': force_data})
-    if r:
-        print('✅ Upload complete! Your app is currently being built.\n' +
-            f'It will be live at {name if "." in name else _endpoint(sub=name)}')
-    else: return 'Unknown failure'
+    if not r: raise PlashError('Unknown failure')
+    return name if "." in name else _endpoint(sub=name)
 
-# %% ../nbs/00_cli.ipynb 26
+# %% ../nbs/00_cli.ipynb 25
+@call_parse
+@delegates(deploy)
+def _deploy(**kwargs):
+    print('Initializing deployment...')
+    try: res = deploy(**kwargs)
+    except PlashError as e: return str(e)
+    print('✅ Upload complete! Your app is currently being built.\n' +
+        f'It will be live at {res}')
+_deploy.__doc__ = deploy.__doc__
+
+# %% ../nbs/00_cli.ipynb 28
 @call_parse
 def view(
     path:Path=Path('.'), # Path to project directory
     name:str=None,     # Overrides the .plash file in project root if provided
 ):
     "Open your app in the browser"
-    if not name: name = _get_app_name(path)
+    name = _prep(path, name)
     url = name if '.' in name else _endpoint(sub=name)
     print(f"Opening browser to view app :\n{url}\n")
     webbrowser.open(url)
 
-# %% ../nbs/00_cli.ipynb 29
-@call_parse
+# %% ../nbs/00_cli.ipynb 31
 def delete(
     path:Path=Path('.'), # Path to project
-    name:str=None,     # Overrides the .plash file in project root if provided
-    force:bool=False):   # Skip confirmation prompt
+    name:str=None):      # Overrides the .plash file in project root if provided
     'Delete your deployed app'
-    if not name: name = _get_app_name(path)
-    if not force:
-        confirm = input(f"Are you sure you want to delete app '{name}'? This action cannot be undone. [y/N]: ")
-        if confirm.lower() not in ['y', 'yes']:
-            print("Deletion cancelled.")
-            return
-    
-    print(f"Deleting app '{name}'...")
-    if r := _mk_auth_req(_endpoint(rt=f"/delete?name={name}"), "delete"): return r.text
+    name = _prep(path, name)
+    r = _mk_auth_req(_endpoint(rt=f"/delete?name={name}"), "delete")
+    if not r: raise PlashError('Failed to delete app')
+    return f"App '{name}' deleted successfully"
 
-# %% ../nbs/00_cli.ipynb 32
 @call_parse
-def start(path:Path=Path('.'), name:str=None):
-    "Start your deployed app"
-    if not name: name = _get_app_name(path)
-    if r := _mk_auth_req(_endpoint(rt=f"/start?name={name}")): return r.text
+@delegates(delete)
+def _delete(force:bool=False,  # Skip confirmation prompt
+    **kwargs):
+    'Delete your deployed app'
+    if not force:
+        confirm = input("Are you sure you want to delete the app? [y/N]: ")
+        if confirm.lower() not in ['y', 'yes']: return print("Deletion cancelled.")
+    try: print(delete(**kwargs))
+    except PlashError as e:  return str(e)
+_delete.__doc__ = delete.__doc__
 
-# %% ../nbs/00_cli.ipynb 35
-@call_parse  
-def stop(path:Path=Path('.'), name:str=None):
-    "Stop your deployed app" 
-    if not name: name = _get_app_name(path)
-    if r := _mk_auth_req(_endpoint(rt=f"/stop?name={name}")): return r.text
+# %% ../nbs/00_cli.ipynb 34
+def start(
+    path:Path=Path('.'), # Path to project
+    name:str=None):      # Overrides the .plash file in project root if provided
+    'Start your deployed app'
+    name = _prep(path, name)
+    r = _mk_auth_req(_endpoint(rt=f"/start?name={name}"))
+    if not r: raise PlashError('Failed to start app')
+    return f"App '{name}' started"
 
-# %% ../nbs/00_cli.ipynb 38
+@call_parse
+@delegates(start)
+def _start(**kwargs):
+    try: print(start(**kwargs))
+    except PlashError as e:  return str(e)
+_start.__doc__ = start.__doc__
+
+# %% ../nbs/00_cli.ipynb 37
+def stop(
+    path:Path=Path('.'), # Path to project
+    name:str=None):      # Overrides the .plash file in project root if provided
+    'Stop your deployed app'
+    name = _prep(path, name)
+    r = _mk_auth_req(_endpoint(rt=f"/stop?name={name}"))
+    if not r: raise PlashError('Failed to stop app')
+    return f"App '{name}' stopped"
+
+@call_parse
+@delegates(stop)
+def _stop(**kwargs):
+    try: print(stop(**kwargs))
+    except PlashError as e:  return str(e)
+_stop.__doc__ = stop.__doc__
+
+# %% ../nbs/00_cli.ipynb 40
 log_modes = str_enum('log_modes', 'build', 'app')
 
-# %% ../nbs/00_cli.ipynb 39
-@call_parse
+# %% ../nbs/00_cli.ipynb 41
 def logs(
     path:Path=Path('.'),    # Path to project
     name:str=None,          # Overrides the .plash file in project root if provided
-    mode:log_modes='build', # Choose between build or app logs
-    tail:bool=False):       # Tail the logs
-    'Prints the logs for your deployed app'
-    if not name: name = _get_app_name(path)
-    if tail:
+    mode:log_modes='build'): # Choose between build or app logs
+    'Get logs for your deployed app'
+    name = _prep(path, name)
+    r = _mk_auth_req(_endpoint(rt=f"/logs?name={name}&mode={mode}"))
+    if not r: raise PlashError('Failed to retrieve logs')
+    return r.text
+
+@call_parse
+@delegates(logs)
+def _logs(tail:bool=False,  # Tail the logs
+    **kwargs):
+    try:
+        if not tail: return print(logs(**kwargs))
         text = ''
         while True:
             try:
-                r = _mk_auth_req(_endpoint(rt=f"/logs?name={name}&mode={mode}"))
-                print(r.text[len(text):], end='') # Only print updates
-                text = r.text
-                if mode == 'build' and 'Build End Time:' in r.text: return
+                new_text = logs(**kwargs)
+                print(new_text[len(text):], end='')
+                text = new_text
+                if kwargs.get('mode','build') == 'build' and 'Build End Time:' in new_text: return
                 sleep(1)
-            except KeyboardInterrupt: return "\nExiting"
-    if r := _mk_auth_req(_endpoint(rt=f"/logs?name={name}&mode={mode}")): return r.text
+            except KeyboardInterrupt: print("\nExiting"); return
+    except PlashError as e:  return str(e)
+_logs.__doc__ = logs.__doc__
 
-# %% ../nbs/00_cli.ipynb 42
+# %% ../nbs/00_cli.ipynb 44
 @patch
 def _is_dir_empty(self:Path): return next(self.iterdir(), None) is None
 
-# %% ../nbs/00_cli.ipynb 46
-@call_parse
+# %% ../nbs/00_cli.ipynb 48
 def download(
-    path:Path=Path('.'),                 # Path to project
-    name:str=None,                       # Overrides the .plash file in project root if provided
-    save_path:Path=Path("./download/")): # Save path (optional)
-    'Download your deployed app'
-    if not name: name = _get_app_name(path)
+    path:Path=Path('.'),  # Path to project
+    name:str=None,        # Overrides the .plash file in project root if provided
+    save_path:Path="./download/"): # Save path (optional)
+    "Download deployed app to save_path."
+    name = _prep(path, name)
+    save_path = Path(save_path)
     save_path.mkdir(exist_ok=True)
-    if not save_path._is_dir_empty(): return print(f'ERROR: Save path ({save_path}) is not empty.')
-    if r := _mk_auth_req(_endpoint(rt=f'/download?name={name}')):
-        with tarfile.open(fileobj=io.BytesIO(r.content), mode="r:gz") as tar: tar.extractall(path=save_path, filter='data')
-        print(f"Downloaded your app to: {save_path}")        
+    if not save_path._is_dir_empty(): raise PlashError(f'Save path ({save_path}) is not empty.')
+    r = _mk_auth_req(_endpoint(rt=f'/download?name={name}'))
+    if not r: raise PlashError('Download request failed')
+    with tarfile.open(fileobj=io.BytesIO(r.content), mode="r:gz") as tar: 
+        tar.extractall(path=save_path, filter='data')
+    return save_path
 
-# %% ../nbs/00_cli.ipynb 49
 @call_parse
-def apps(verbose:bool=False):
-    "List your deployed apps (verbose shows status table: 1=running, 0=stopped)"
+@delegates(download)
+def _download(**kwargs):
+    try: print(f"Downloaded your app to: {download(**kwargs)}")
+    except PlashError as e:  return str(e)
+_download.__doc__ = download.__doc__
+
+# %% ../nbs/00_cli.ipynb 51
+def apps():
+    "List your deployed apps"
     r = _mk_auth_req(_endpoint(rt="/user_apps"))
-    if r:
-        apps = r.json()
-        if not apps: return "You don't have any deployed Plash apps."
-        if verbose: return [print(f"{a['running']} {a['name']}") for a in apps]
-        else: return [print(a['name']) for a in apps]
+    if not r: raise PlashError('Failed to retrieve')
+    return r.json()
+
+@call_parse
+def _apps(verbose:bool=False): # Whether to show running status as well as name: 1=running, 0=stopped
+    try: res = apps()
+    except PlashError as e: return str(e)
+    if not res: print("You don't have any deployed Plash apps.")
+    for a in res: print(f"{a['running']} {a['name']}" if verbose else a['name'])
+_apps.__doc__ = apps.__doc__
