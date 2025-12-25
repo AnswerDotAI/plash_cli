@@ -2,6 +2,13 @@
 
 <!-- do not remove -->
 
+## 0.3.8
+
+### New Features
+
+- Add non-cli versions ([#71](https://github.com/AnswerDotAI/plash_cli/issues/71))
+
+
 ## 0.3.7
 
 ### New Features
