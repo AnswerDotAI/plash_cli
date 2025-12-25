@@ -2,21 +2,25 @@
 
 <!-- do not remove -->
 
+## 0.3.4
+
+### New Features
+
+- Add `--token` and `--save` to `login`, and allow `PLASH_TOKEN` env var ([#68](https://github.com/AnswerDotAI/plash_cli/issues/68))
+
+
 ## 0.3.3
 
 ### New Features
 
-- plash_download should overwrite empty dirs ([#64](https://github.com/AnswerDotAI/plash_cli/issues/64))
-
+- `plash_download` should overwrite empty dirs ([#64](https://github.com/AnswerDotAI/plash_cli/issues/64))
 
 
 ## 0.3.2
 
-
 ### Bugs Squashed
 
 - fix renames and better handle error msgs ([#63](https://github.com/AnswerDotAI/plash_cli/pull/63)), thanks to [@ncoop57](https://github.com/ncoop57)
-
 
 
 ## 0.3.1
@@ -24,7 +28,6 @@
 ### New Features
 
 - use implementation nbs as ref docs instead of separate ([#60](https://github.com/AnswerDotAI/plash_cli/pull/60)), thanks to [@RensDimmendaal](https://github.com/RensDimmendaal)
-
 - Base marimo example ([#59](https://github.com/AnswerDotAI/plash_cli/pull/59)), thanks to [@koaning](https://github.com/koaning)
 
 ### Bugs Squashed
@@ -41,7 +44,6 @@
 
 ## 0.2.2
 
-
 ### Bugs Squashed
 
 - UnicodeDecodeError: 'charmap' codec can't decode byte 0x9d in position 107: character maps to <undefined> ([#56](https://github.com/AnswerDotAI/plash_cli/issues/56))
@@ -56,7 +58,6 @@
 ### Bugs Squashed
 
 - Unable to `plash_login` ([#52](https://github.com/AnswerDotAI/plash_cli/issues/52))
-
 - Fix quoting issue ([#51](https://github.com/AnswerDotAI/plash_cli/pull/51)), thanks to [@thomasht86](https://github.com/thomasht86)
 
 
@@ -65,7 +66,6 @@
 ### New Features
 
 - add force data overwrite flag ([#46](https://github.com/AnswerDotAI/plash_cli/issues/46))
-
 
 
 ## 0.1.3
@@ -82,13 +82,11 @@
 - feat: add flag to list all user apps ([#36](https://github.com/AnswerDotAI/plash_cli/issues/36))
 
 
-
 ## 0.1.1
 
 ### New Features
 
 - migrate app id to app name ([#35](https://github.com/AnswerDotAI/plash_cli/issues/35))
-
 - have log end when build is done ([#34](https://github.com/AnswerDotAI/plash_cli/issues/34))
 
 ### Bugs Squashed
@@ -108,19 +106,8 @@
 ### New Features
 
 - add flag to specify app id when deploying ([#12](https://github.com/AnswerDotAI/plash_cli/issues/12))
-
 - Option to fetch build or app logs in the CLI ([#8](https://github.com/AnswerDotAI/plash_cli/pull/8)), thanks to [@pydanny](https://github.com/pydanny)
-  - This changes the following:
-
-1. Provides a new option for display of logs, specifically the build logs
-2. Defaults the log to output build logs, rather than app logs
-
-This change will make it easier to investigate failed deployments and other problems
-
-This change is dependant on a forthcoming change to Plash.
-
 - add ability to deploy a single python script using pep 723 inline dep syntax ([#5](https://github.com/AnswerDotAI/plash_cli/issues/5))
-
 
 
 ## 0.0.3
@@ -128,18 +115,9 @@ This change is dependant on a forthcoming change to Plash.
 ### New Features
 
 - add new cli commands for parity with website ([#7](https://github.com/AnswerDotAI/plash_cli/issues/7))
-  - resolved in https://github.com/AnswerDotAI/plash_cli/pull/4
-
 - change cli auth to oauth ([#6](https://github.com/AnswerDotAI/plash_cli/issues/6))
-
-
-
-## 0.0.2
-
-
-
 
 ## 0.0.1
 
-
+- init version
 
