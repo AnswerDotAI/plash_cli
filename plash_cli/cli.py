@@ -167,9 +167,9 @@ def deploy(
         name = friendly_name(3, 3)
         plash_app.write_text(f'export PLASH_APP_NAME={name}')
     
-    tarz, _ = create_tar_archive(path, force_data)
+    tarz, _ = create_tar_archive(path, _force_data)
     r = _mk_auth_req(_endpoint(rt="/upload"), "post", files={'file': tarz},
-                     data={'name': name, 'force_data': force_data})
+                     data={'name': name, 'force_data': _force_data})
     if not r: raise PlashError('Unknown failure')
     return name if "." in name else _endpoint(sub=name)
 
