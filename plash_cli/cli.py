@@ -22,18 +22,18 @@ PLASH_CONFIG_HOME = xdg_config_home() / 'plash_config.json'
 PLASH_DOMAIN = os.getenv("PLASH_DOMAIN","pla.sh")  # pla.sh plash-dev.answer.ai localhost:5002
 
 # %% ../nbs/00_cli.ipynb 7
-def _get_client(cookie_file):
+def _get_client(cfg=PLASH_CONFIG_HOME):
     client = httpx.Client()
-    if not cookie_file.exists():
-        raise FileNotFoundError("Plash config not found. Please run plash_login and try again.")
-    cookies = Path(cookie_file).read_json()
+    if tok := os.getenv("PLASH_TOKEN"): cookies = {"session_": tok}
+    elif cfg.exists(): cookies = cfg.read_json()
+    else: raise FileNotFoundError("Config not found. Run plash_login and retry.")
     client.cookies.update(cookies)
     client.headers.update({'X-PLASH': 'true', 'User-Agent': f'plash_cli/{__version__}'})
     return client
 
 # %% ../nbs/00_cli.ipynb 8
 def _mk_auth_req(url:str, method:str='get', timeout=300., **kwargs):
-    r = getattr(_get_client(PLASH_CONFIG_HOME), method)(url, timeout=timeout, **kwargs)
+    r = getattr(_get_client(), method)(url, timeout=timeout, **kwargs)
     if r.status_code == 200: return r
     else: print(f'Failure: {r.headers["X-Plash-Error"]}')
 
@@ -81,8 +81,17 @@ def _poll_cookies(paircode, interval=1, timeout=180):
 
 # %% ../nbs/00_cli.ipynb 14
 @call_parse
-def login():
+def login(
+    token:str=None,  # Token to save directly to config
+    show:bool=False  # Output the current session token
+):
     "Authenticate CLI with server and save config"
+    if show:
+        if not PLASH_CONFIG_HOME.exists(): return print("No config found.")
+        return print(PLASH_CONFIG_HOME.read_json().get("session_", ""), end='')
+    if token:
+        PLASH_CONFIG_HOME.write_text(json.dumps({"session_": token.strip()}))
+        return print(f"Token saved to {PLASH_CONFIG_HOME}")
     paircode = secrets.token_urlsafe(16)
     login_url = httpx.get(_endpoint(rt=f"/cli_login?paircode={paircode}")).text
     print(f"Opening browser for authentication:\n{login_url}\n")
@@ -90,7 +99,7 @@ def login():
     
     cookies = _poll_cookies(paircode)
     if cookies:
-        Path(PLASH_CONFIG_HOME).write_text(json.dumps(cookies))
+        PLASH_CONFIG_HOME.write_text(json.dumps(cookies))
         print(f"Authentication successful! Config saved to {PLASH_CONFIG_HOME}")
     else: print("Authentication timed out.")
 
@@ -122,11 +131,11 @@ def _validate_app(path):
 def create_tar_archive(path:Path, force_data:bool=False) -> tuple[io.BytesIO, int]:
     "Creates a tar archive of a directory, excluding files based on is_included"
     tarz = io.BytesIO()
-    files = L(path if path.is_file() else Path(path).iterdir()).filter(_is_included)
+    files = L(path if path.is_file() else path.iterdir()).filter(_is_included)
     if not force_data: files = files.filter(lambda f: f.name != 'data')
     with tarfile.open(fileobj=tarz, mode='w:gz') as tar:
         for f in files: tar.add(f, arcname=f.name)
-        if deps:=_deps((path / 'main.py').read_bytes()):
+        if deps:=_deps((path/'main.py').read_bytes()):
             info = tarfile.TarInfo('requirements.txt')
             info.size = len(deps)
             tar.addfile(info, io.BytesIO(deps.encode('utf-8')))
@@ -134,14 +143,6 @@ def create_tar_archive(path:Path, force_data:bool=False) -> tuple[io.BytesIO, in
     return tarz, len(files)
 
 # %% ../nbs/00_cli.ipynb 23
-def _gen_app_name():
-    adjectives = ['admiring', 'adoring', 'amazing', 'awesome', 'beautiful', 'blissful', 'bold', 'brave', 'busy', 'charming', 'clever', 'compassionate', 'confident', 'cool', 'dazzling', 'determined', 'dreamy', 'eager', 'ecstatic', 'elastic', 'elated', 'elegant', 'epic', 'exciting', 'fervent', 'festive', 'flamboyant', 'focused', 'friendly', 'frosty', 'funny', 'gallant', 'gifted', 'goofy', 'gracious', 'great', 'happy', 'hopeful', 'hungry', 'inspiring', 'intelligent', 'interesting', 'jolly', 'jovial', 'keen', 'kind', 'laughing', 'loving', 'lucid', 'magical', 'modest', 'nice', 'nifty', 'nostalgic', 'objective', 'optimistic', 'peaceful', 'pensive', 'practical', 'priceless', 'quirky', 'quizzical', 'relaxed', 'reverent', 'romantic', 'serene', 'sharp', 'silly', 'sleepy', 'stoic', 'sweet', 'tender', 'trusting', 'upbeat', 'vibrant', 'vigilant', 'vigorous', 'wizardly', 'wonderful', 'youthful', 'zealous', 'zen', 'golden', 'silver', 'crimson', 'azure', 'emerald', 'violet', 'amber', 'coral', 'turquoise', 'lavender', 'minty', 'citrus', 'vanilla', 'woody', 'floral', 'fresh', 'gentle', 'sparkling', 'precise', 'curious']
-    nouns = ['tiger', 'eagle', 'river', 'mountain', 'forest', 'ocean', 'star', 'moon', 'wind', 'dragon', 'phoenix', 'wolf', 'bear', 'lion', 'shark', 'falcon', 'raven', 'crystal', 'diamond', 'ruby', 'sapphire', 'pearl', 'wave', 'tide', 'cloud', 'rainbow', 'sunset', 'sunrise', 'galaxy', 'comet', 'meteor', 'planet', 'nebula', 'cosmos', 'universe', 'atom', 'photon', 'quantum', 'matrix', 'cipher', 'code', 'signal', 'pulse', 'beam', 'ray', 'spark', 'frost', 'ice', 'snow', 'mist', 'fog', 'dew', 'rain', 'hail', 'helix', 'prism', 'lens', 'mirror', 'echo', 'heart', 'mind', 'dream', 'vision', 'hope', 'wish', 'magic', 'spell', 'charm', 'rune', 'symbol', 'token', 'key', 'door', 'gate', 'bridge', 'tower', 'castle', 'fortress', 'shield', 'dolphin', 'whale', 'penguin', 'butterfly', 'hummingbird', 'deer', 'rabbit', 'fox', 'otter', 'panda', 'koala', 'zebra', 'giraffe', 'elephant', 'valley', 'canyon', 'meadow', 'prairie', 'island', 'lake', 'pond', 'stream', 'waterfall', 'cliff', 'peak', 'hill', 'grove', 'garden', 'sunlight', 'breeze', 'melody', 'sparkle', 'whirlpool', 'windmill', 'carousel', 'spiral', 'glow']
-    verbs = ['runs', 'flies', 'jumps', 'builds', 'creates', 'flows', 'shines', 'grows', 'moves', 'works', 'dances', 'sings', 'plays', 'dreams', 'thinks', 'learns', 'teaches', 'helps', 'heals', 'saves', 'protects', 'guards', 'watches', 'sees', 'hears', 'feels', 'knows', 'understands', 'discovers', 'explores', 'searches', 'finds', 'seeks', 'holds', 'carries', 'lifts', 'pushes', 'pulls', 'makes', 'crafts', 'forges', 'shapes', 'forms', 'molds', 'carves', 'joins', 'connects', 'links', 'binds', 'ties', 'opens', 'closes', 'starts', 'stops', 'begins', 'ends', 'finishes', 'completes', 'wins', 'triumphs', 'succeeds', 'achieves', 'accomplishes', 'reaches', 'arrives', 'departs', 'leaves', 'returns', 'comes', 'goes', 'travels', 'journeys', 'walks', 'sprints', 'races', 'speeds', 'rushes', 'hurries', 'waits', 'pauses', 'rests', 'sleeps', 'wakes', 'rises', 'climbs', 'ascends', 'descends', 'swims', 'dives', 'surfs', 'sails', 'paddles', 'hikes', 'treks', 'wanders', 'roams', 'ventures', 'navigates', 'glides', 'soars', 'floats', 'drifts', 'tosses', 'divides', 'shares', 'secures', 'settles', 'places', 'wonders', 'questions']
-    suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=3))
-    return f"{random.choice(adjectives)}-{random.choice(nouns)}-{random.choice(verbs)}-{suffix}"
-
-# %% ../nbs/00_cli.ipynb 24
 @call_parse
 def deploy(
     path:Path=Path('.'),    # Path to project
@@ -163,7 +164,7 @@ def deploy(
         if not name: name = _get_app_name(path)
     except FileNotFoundError:
         plash_app = path / '.plash'
-        name = _gen_app_name()
+        name = friendly_name(3, 3)
         plash_app.write_text(f'export PLASH_APP_NAME={name}')
     
     tarz, _ = create_tar_archive(path, force_data)
@@ -173,7 +174,7 @@ def deploy(
         print('✅ Upload complete! Your app is currently being built.')
         print(f'It will be live at {name if "." in name else _endpoint(sub=name)}')
 
-# %% ../nbs/00_cli.ipynb 27
+# %% ../nbs/00_cli.ipynb 26
 @call_parse
 def view(
     path:Path=Path('.'), # Path to project directory
@@ -185,7 +186,7 @@ def view(
     print(f"Opening browser to view app :\n{url}\n")
     webbrowser.open(url)
 
-# %% ../nbs/00_cli.ipynb 30
+# %% ../nbs/00_cli.ipynb 29
 @call_parse
 def delete(
     path:Path=Path('.'), # Path to project
@@ -202,24 +203,24 @@ def delete(
     print(f"Deleting app '{name}'...")
     if r := _mk_auth_req(_endpoint(rt=f"/delete?name={name}"), "delete"): return r.text
 
-# %% ../nbs/00_cli.ipynb 33
+# %% ../nbs/00_cli.ipynb 32
 @call_parse
 def start(path:Path=Path('.'), name:str=None):
     "Start your deployed app"
     if not name: name = _get_app_name(path)
     if r := _mk_auth_req(_endpoint(rt=f"/start?name={name}")): return r.text
 
-# %% ../nbs/00_cli.ipynb 36
+# %% ../nbs/00_cli.ipynb 35
 @call_parse  
 def stop(path:Path=Path('.'), name:str=None):
     "Stop your deployed app" 
     if not name: name = _get_app_name(path)
     if r := _mk_auth_req(_endpoint(rt=f"/stop?name={name}")): return r.text
 
-# %% ../nbs/00_cli.ipynb 39
+# %% ../nbs/00_cli.ipynb 38
 log_modes = str_enum('log_modes', 'build', 'app')
 
-# %% ../nbs/00_cli.ipynb 40
+# %% ../nbs/00_cli.ipynb 39
 @call_parse
 def logs(
     path:Path=Path('.'),    # Path to project
@@ -240,11 +241,11 @@ def logs(
             except KeyboardInterrupt: return "\nExiting"
     if r := _mk_auth_req(_endpoint(rt=f"/logs?name={name}&mode={mode}")): return r.text
 
-# %% ../nbs/00_cli.ipynb 44
+# %% ../nbs/00_cli.ipynb 42
 @patch
 def _is_dir_empty(self:Path): return next(self.iterdir(), None) is None
 
-# %% ../nbs/00_cli.ipynb 47
+# %% ../nbs/00_cli.ipynb 45
 @call_parse
 def download(
     path:Path=Path('.'),                 # Path to project
@@ -258,7 +259,7 @@ def download(
         with tarfile.open(fileobj=io.BytesIO(r.content), mode="r:gz") as tar: tar.extractall(path=save_path)
         print(f"Downloaded your app to: {save_path}")        
 
-# %% ../nbs/00_cli.ipynb 50
+# %% ../nbs/00_cli.ipynb 48
 @call_parse
 def apps(verbose:bool=False):
     "List your deployed apps (verbose shows status table: 1=running, 0=stopped)"
