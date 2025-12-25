@@ -99,8 +99,8 @@ def login(
     cookies = _poll_cookies(paircode)
     if cookies:
         PLASH_CONFIG_HOME.write_text(json.dumps(cookies))
-        return f"Authentication successful! Config saved to {PLASH_CONFIG_HOME}"
-    else: return "Authentication timed out."
+        print(f"Authentication successful! Config saved to {PLASH_CONFIG_HOME}")
+    else: print("Authentication timed out.")
 
 # %% ../nbs/00_cli.ipynb 17
 pat = r'(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$'
@@ -170,7 +170,7 @@ def deploy(
     r = _mk_auth_req(_endpoint(rt="/upload"), "post", files={'file': tarz},
                      data={'name': name, 'force_data': force_data})
     if r:
-        return ('✅ Upload complete! Your app is currently being built.\n' +
+        print('✅ Upload complete! Your app is currently being built.\n' +
             f'It will be live at {name if "." in name else _endpoint(sub=name)}')
     else: return 'Unknown failure'
 
@@ -245,7 +245,7 @@ def logs(
 @patch
 def _is_dir_empty(self:Path): return next(self.iterdir(), None) is None
 
-# %% ../nbs/00_cli.ipynb 45
+# %% ../nbs/00_cli.ipynb 46
 @call_parse
 def download(
     path:Path=Path('.'),                 # Path to project
@@ -259,7 +259,7 @@ def download(
         with tarfile.open(fileobj=io.BytesIO(r.content), mode="r:gz") as tar: tar.extractall(path=save_path, filter='data')
         print(f"Downloaded your app to: {save_path}")        
 
-# %% ../nbs/00_cli.ipynb 48
+# %% ../nbs/00_cli.ipynb 49
 @call_parse
 def apps(verbose:bool=False):
     "List your deployed apps (verbose shows status table: 1=running, 0=stopped)"
@@ -267,5 +267,5 @@ def apps(verbose:bool=False):
     if r:
         apps = r.json()
         if not apps: return "You don't have any deployed Plash apps."
-        if verbose: return [(f"{a['running']} {a['name']}") for a in apps]
-        else: return [(a['name']) for a in apps]
+        if verbose: return [print(f"{a['running']} {a['name']}") for a in apps]
+        else: return [print(a['name']) for a in apps]
