@@ -77,7 +77,6 @@ def _poll_cookies(paircode, interval=1, timeout=180):
         resp = client.get(url).raise_for_status()
         if resp.text.strip(): return dict(client.cookies)
         sleep(interval)
-     
 
 # %% ../nbs/00_cli.ipynb 14
 @call_parse
@@ -91,7 +90,7 @@ def login(
         return print(PLASH_CONFIG_HOME.read_json().get("session_", ""), end='')
     if token:
         PLASH_CONFIG_HOME.write_text(json.dumps({"session_": token.strip()}))
-        return print(f"Token saved to {PLASH_CONFIG_HOME}")
+        return f"Token saved to {PLASH_CONFIG_HOME}"
     paircode = secrets.token_urlsafe(16)
     login_url = httpx.get(_endpoint(rt=f"/cli_login?paircode={paircode}")).text
     print(f"Opening browser for authentication:\n{login_url}\n")
@@ -100,13 +99,13 @@ def login(
     cookies = _poll_cookies(paircode)
     if cookies:
         PLASH_CONFIG_HOME.write_text(json.dumps(cookies))
-        print(f"Authentication successful! Config saved to {PLASH_CONFIG_HOME}")
-    else: print("Authentication timed out.")
+        return f"Authentication successful! Config saved to {PLASH_CONFIG_HOME}"
+    else: return "Authentication timed out."
 
 # %% ../nbs/00_cli.ipynb 17
 pat = r'(?m)^# /// (?P<type>[a-zA-Z0-9-]+)$\s(?P<content>(^#(| .*)$\s)+)^# ///$'
 
-def _deps(script: bytes | str) -> dict | None:
+def _deps(script: bytes | str):
     'Get the dependencies from the script. From: https://peps.python.org/pep-0723/'
     name = 'script'
     if isinstance(script, bytes): script = script.decode('utf-8')
@@ -171,8 +170,9 @@ def deploy(
     r = _mk_auth_req(_endpoint(rt="/upload"), "post", files={'file': tarz},
                      data={'name': name, 'force_data': force_data})
     if r:
-        print('✅ Upload complete! Your app is currently being built.')
-        print(f'It will be live at {name if "." in name else _endpoint(sub=name)}')
+        return ('✅ Upload complete! Your app is currently being built.\n' +
+            f'It will be live at {name if "." in name else _endpoint(sub=name)}')
+    else: return 'Unknown failure'
 
 # %% ../nbs/00_cli.ipynb 26
 @call_parse
@@ -233,11 +233,11 @@ def logs(
         text = ''
         while True:
             try:
-                if r := _mk_auth_req(_endpoint(rt=f"/logs?name={name}&mode={mode}")):
-                    print(r.text[len(text):], end='') # Only print updates
-                    text = r.text
-                    if mode == 'build' and 'Build End Time:' in r.text: break
-                    sleep(1)
+                r = _mk_auth_req(_endpoint(rt=f"/logs?name={name}&mode={mode}"))
+                print(r.text[len(text):], end='') # Only print updates
+                text = r.text
+                if mode == 'build' and 'Build End Time:' in r.text: return
+                sleep(1)
             except KeyboardInterrupt: return "\nExiting"
     if r := _mk_auth_req(_endpoint(rt=f"/logs?name={name}&mode={mode}")): return r.text
 
@@ -256,7 +256,7 @@ def download(
     save_path.mkdir(exist_ok=True)
     if not save_path._is_dir_empty(): return print(f'ERROR: Save path ({save_path}) is not empty.')
     if r := _mk_auth_req(_endpoint(rt=f'/download?name={name}')):
-        with tarfile.open(fileobj=io.BytesIO(r.content), mode="r:gz") as tar: tar.extractall(path=save_path)
+        with tarfile.open(fileobj=io.BytesIO(r.content), mode="r:gz") as tar: tar.extractall(path=save_path, filter='data')
         print(f"Downloaded your app to: {save_path}")        
 
 # %% ../nbs/00_cli.ipynb 48
@@ -267,5 +267,5 @@ def apps(verbose:bool=False):
     if r:
         apps = r.json()
         if not apps: return "You don't have any deployed Plash apps."
-        if verbose: [print(f"{a['running']} {a['name']}") for a in apps]
-        else: [print(a['name']) for a in apps]
+        if verbose: return [(f"{a['running']} {a['name']}") for a in apps]
+        else: return [(a['name']) for a in apps]
