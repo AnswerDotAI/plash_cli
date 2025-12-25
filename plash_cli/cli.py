@@ -4,7 +4,7 @@
 
 # %% auto 0
 __all__ = ['PLASH_CONFIG_HOME', 'PLASH_DOMAIN', 'pat', 'log_modes', 'PlashError', 'login', 'create_tar_archive', 'deploy', 'view',
-           'delete', 'start', 'stop', 'logs', 'download', 'apps']
+           'delete', 'start', 'stop', 'logs', 'download', 'app_list', 'plash_tool_info']
 
 # %% ../nbs/00_cli.ipynb 3
 from fastcore.all import *
@@ -187,7 +187,7 @@ _deploy.__doc__ = deploy.__doc__
 # %% ../nbs/00_cli.ipynb 28
 @call_parse
 def view(
-    path:Path=Path('.'), # Path to project directory
+    path:Path='.', # Path to project directory
     name:str=None,     # Overrides the .plash file in project root if provided
 ):
     "Open your app in the browser"
@@ -198,7 +198,7 @@ def view(
 
 # %% ../nbs/00_cli.ipynb 31
 def delete(
-    path:Path=Path('.'), # Path to project
+    path:Path='.', # Path to project
     name:str=None):      # Overrides the .plash file in project root if provided
     'Delete your deployed app'
     name = _prep(path, name)
@@ -220,7 +220,7 @@ _delete.__doc__ = delete.__doc__
 
 # %% ../nbs/00_cli.ipynb 34
 def start(
-    path:Path=Path('.'), # Path to project
+    path:Path='.', # Path to project
     name:str=None):      # Overrides the .plash file in project root if provided
     'Start your deployed app'
     name = _prep(path, name)
@@ -237,7 +237,7 @@ _start.__doc__ = start.__doc__
 
 # %% ../nbs/00_cli.ipynb 37
 def stop(
-    path:Path=Path('.'), # Path to project
+    path:Path='.', # Path to project
     name:str=None):      # Overrides the .plash file in project root if provided
     'Stop your deployed app'
     name = _prep(path, name)
@@ -257,7 +257,7 @@ log_modes = str_enum('log_modes', 'build', 'app')
 
 # %% ../nbs/00_cli.ipynb 41
 def logs(
-    path:Path=Path('.'),    # Path to project
+    path:Path='.',    # Path to project
     name:str=None,          # Overrides the .plash file in project root if provided
     mode:log_modes='build'): # Choose between build or app logs
     'Get logs for your deployed app'
@@ -290,7 +290,7 @@ def _is_dir_empty(self:Path): return next(self.iterdir(), None) is None
 
 # %% ../nbs/00_cli.ipynb 48
 def download(
-    path:Path=Path('.'),  # Path to project
+    path:Path='.',  # Path to project
     name:str=None,        # Overrides the .plash file in project root if provided
     save_path:Path="./download/"): # Save path (optional)
     "Download deployed app to save_path."
@@ -312,16 +312,21 @@ def _download(**kwargs):
 _download.__doc__ = download.__doc__
 
 # %% ../nbs/00_cli.ipynb 51
-def apps():
+def app_list():
     "List your deployed apps"
     r = _mk_auth_req(_endpoint(rt="/user_apps"))
     if not r: raise PlashError('Failed to retrieve')
     return r.json()
 
 @call_parse
-def _apps(verbose:bool=False): # Whether to show running status as well as name: 1=running, 0=stopped
+def _app_list(verbose:bool=False): # Whether to show running status as well as name: 1=running, 0=stopped
     try: res = apps()
     except PlashError as e: return str(e)
     if not res: print("You don't have any deployed Plash apps.")
     for a in res: print(f"{a['running']} {a['name']}" if verbose else a['name'])
-_apps.__doc__ = apps.__doc__
+_app_list.__doc__ = app_list.__doc__
+
+# %% ../nbs/00_cli.ipynb 54
+def plash_tool_info():
+    from dialoghelper import add_msg
+    add_msg('Plash tools: &`[login, deploy, delete, start, stop, logs, download, app_list]`')
