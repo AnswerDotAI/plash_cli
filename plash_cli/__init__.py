@@ -1,2 +1,2 @@
-__version__ = "0.3.11"
+__version__ = "0.3.10"
 from .cli import *
