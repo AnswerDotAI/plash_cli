@@ -2,6 +2,13 @@
 
 <!-- do not remove -->
 
+## 0.3.5
+
+### New Features
+
+- Add `.cli` to `__init__.py` ([#69](https://github.com/AnswerDotAI/plash_cli/issues/69))
+
+
 ## 0.3.4
 
 ### New Features
