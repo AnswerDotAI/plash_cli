@@ -2,14 +2,7 @@
 
 <!-- do not remove -->
 
-## 0.3.6
-
-### New Features
-
-- Return instead of print to allow use as tools ([#70](https://github.com/AnswerDotAI/plash_cli/issues/70))
-
-
-## 0.3.5
+## 0.3.7
 
 ### New Features
 
