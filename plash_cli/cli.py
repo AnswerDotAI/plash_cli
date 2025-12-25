@@ -329,4 +329,4 @@ _app_list.__doc__ = app_list.__doc__
 # %% ../nbs/00_cli.ipynb 54
 def plash_tool_info():
     from dialoghelper import add_msg
-    add_msg('Plash tools: &`[login, deploy, delete, start, stop, logs, download, app_list]`')
+    add_msg('Plash tools: &`[login, deploy, start, stop, logs, download, app_list]`')
