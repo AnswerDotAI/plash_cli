@@ -2,6 +2,13 @@
 
 <!-- do not remove -->
 
+## 0.3.9
+
+### New Features
+
+- Hide `_force_data` param ([#72](https://github.com/AnswerDotAI/plash_cli/issues/72))
+
+
 ## 0.3.8
 
 ### New Features
