@@ -4,7 +4,7 @@
 
 # %% auto 0
 __all__ = ['PLASH_CONFIG_HOME', 'PLASH_DOMAIN', 'pat', 'log_modes', 'PlashError', 'login', 'create_tar_archive', 'deploy', 'view',
-           'delete', 'start', 'stop', 'logs', 'download', 'app_list', 'plash_tool_info']
+           'delete_app', 'start_app', 'stop_app', 'logs', 'download_app', 'app_list', 'plash_tool_info']
 
 # %% ../nbs/00_cli.ipynb 3
 from fastcore.all import *
@@ -148,11 +148,11 @@ def create_tar_archive(path:Path, force_data:bool=False) -> tuple[io.BytesIO, in
 def deploy(
     path:Path='.',    # Path to project
     name:str=None,          # Overrides the .plash file in project root if provided
-    force_data:bool=False): # Overwrite data/ directory during deployment
+    _force_data:bool=False): # Overwrite data/ directory during deployment
     """
     Deploys app to production. By default, this command erases all files in your app which are not in data/.
     Then uploads all files and folders, except paths starting with `.` and except the local data/ directory.
-    If `--force_data` is used, then it erases all files in production. Then it uploads all files and folders,
+    If `force_data` is used, then it erases all files in production. Then it uploads all files and folders,
     including `data/`, except paths starting with `.`.
     """
     path = Path(path)
@@ -175,10 +175,12 @@ def deploy(
 
 # %% ../nbs/00_cli.ipynb 25
 @call_parse
-@delegates(deploy)
-def _deploy(**kwargs):
+def _deploy(
+    path:Path='.',    # Path to project
+    name:str=None,          # Overrides the .plash file in project root if provided
+    force_data:bool=False): # Overwrite data/ directory during deployment
     print('Initializing deployment...')
-    try: res = deploy(**kwargs)
+    try: res = deploy(path=path, name=name, _force_data=force_data)
     except PlashError as e: return str(e)
     print('✅ Upload complete! Your app is currently being built.\n' +
         f'It will be live at {res}')
@@ -197,7 +199,7 @@ def view(
     webbrowser.open(url)
 
 # %% ../nbs/00_cli.ipynb 31
-def delete(
+def delete_app(
     path:Path='.', # Path to project
     name:str=None):      # Overrides the .plash file in project root if provided
     'Delete your deployed app'
@@ -207,19 +209,19 @@ def delete(
     return f"App '{name}' deleted successfully"
 
 @call_parse
-@delegates(delete)
+@delegates(delete_app)
 def _delete(force:bool=False,  # Skip confirmation prompt
     **kwargs):
     'Delete your deployed app'
     if not force:
         confirm = input("Are you sure you want to delete the app? [y/N]: ")
         if confirm.lower() not in ['y', 'yes']: return print("Deletion cancelled.")
-    try: print(delete(**kwargs))
+    try: print(delete_app(**kwargs))
     except PlashError as e:  return str(e)
-_delete.__doc__ = delete.__doc__
+_delete.__doc__ = delete_app.__doc__
 
 # %% ../nbs/00_cli.ipynb 34
-def start(
+def start_app(
     path:Path='.', # Path to project
     name:str=None):      # Overrides the .plash file in project root if provided
     'Start your deployed app'
@@ -229,14 +231,14 @@ def start(
     return f"App '{name}' started"
 
 @call_parse
-@delegates(start)
+@delegates(start_app)
 def _start(**kwargs):
-    try: print(start(**kwargs))
+    try: print(start_app(**kwargs))
     except PlashError as e:  return str(e)
-_start.__doc__ = start.__doc__
+_start.__doc__ = start_app.__doc__
 
 # %% ../nbs/00_cli.ipynb 37
-def stop(
+def stop_app(
     path:Path='.', # Path to project
     name:str=None):      # Overrides the .plash file in project root if provided
     'Stop your deployed app'
@@ -246,11 +248,11 @@ def stop(
     return f"App '{name}' stopped"
 
 @call_parse
-@delegates(stop)
+@delegates(stop_app)
 def _stop(**kwargs):
-    try: print(stop(**kwargs))
+    try: print(stop_app(**kwargs))
     except PlashError as e:  return str(e)
-_stop.__doc__ = stop.__doc__
+_stop.__doc__ = stop_app.__doc__
 
 # %% ../nbs/00_cli.ipynb 40
 log_modes = str_enum('log_modes', 'build', 'app')
@@ -289,7 +291,7 @@ _logs.__doc__ = logs.__doc__
 def _is_dir_empty(self:Path): return next(self.iterdir(), None) is None
 
 # %% ../nbs/00_cli.ipynb 48
-def download(
+def download_app(
     path:Path='.',  # Path to project
     name:str=None,        # Overrides the .plash file in project root if provided
     save_path:Path="./download/"): # Save path (optional)
@@ -305,11 +307,11 @@ def download(
     return save_path
 
 @call_parse
-@delegates(download)
+@delegates(download_app)
 def _download(**kwargs):
-    try: print(f"Downloaded your app to: {download(**kwargs)}")
+    try: print(f"Downloaded your app to: {download_app(**kwargs)}")
     except PlashError as e:  return str(e)
-_download.__doc__ = download.__doc__
+_download.__doc__ = download_app.__doc__
 
 # %% ../nbs/00_cli.ipynb 51
 def app_list():
@@ -320,7 +322,7 @@ def app_list():
 
 @call_parse
 def _app_list(verbose:bool=False): # Whether to show running status as well as name: 1=running, 0=stopped
-    try: res = apps()
+    try: res = app_list()
     except PlashError as e: return str(e)
     if not res: print("You don't have any deployed Plash apps.")
     for a in res: print(f"{a['running']} {a['name']}" if verbose else a['name'])
@@ -329,4 +331,4 @@ _app_list.__doc__ = app_list.__doc__
 # %% ../nbs/00_cli.ipynb 54
 def plash_tool_info():
     from dialoghelper import add_msg
-    add_msg('Plash tools: &`[login, deploy, start, stop, logs, download, app_list]`')
+    add_msg('Plash tools: &`[login, deploy, start_app, stop_app, logs, download_app, app_list]`')
