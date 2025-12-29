@@ -13,7 +13,7 @@ import secrets, webbrowser, json, httpx, io, tarfile, random, string
 from pathlib import Path
 from uuid import uuid4
 from time import time, sleep
-import io, os, re, tarfile, tomllib
+import io, os, re, tarfile
 
 from . import __version__
 
@@ -115,6 +115,7 @@ def _deps(script: bytes | str):
     matches = L(re.finditer(pat, script)).filter(lambda m: m.group('type') == name)
     if len(matches) > 1: raise ValueError(f'Multiple {name} blocks found')
     elif len(matches) == 1:
+        import tomllib
         content = ''.join(line[2:] if line.startswith('# ') else line[1:]
                           for line in matches[0].group('content').splitlines(keepends=True))
         return '\n'.join(tomllib.loads(content)['dependencies'])
