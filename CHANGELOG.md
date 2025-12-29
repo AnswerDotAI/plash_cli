@@ -2,6 +2,14 @@
 
 <!-- do not remove -->
 
+## 0.3.11
+
+### New Features
+
+- Support py 3.10 ([#74](https://github.com/AnswerDotAI/plash_cli/issues/74))
+- Update docs: custom domain dns setup ([#73](https://github.com/AnswerDotAI/plash_cli/pull/73)), thanks to [@RensDimmendaal](https://github.com/RensDimmendaal)
+
+
 ## 0.3.10
 
 ### New Features
