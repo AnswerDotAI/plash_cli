@@ -9,7 +9,7 @@ __all__ = ['PLASH_CONFIG_HOME', 'PLASH_DOMAIN', 'pat', 'log_modes', 'PlashError'
 # %% ../nbs/00_cli.ipynb 3
 from fastcore.all import *
 from fastcore.xdg import *
-import secrets, webbrowser, json, httpx, io, tarfile, random, string
+import secrets, webbrowser, httpx, io, tarfile, random, string
 from pathlib import Path
 from uuid import uuid4
 from time import time, sleep
@@ -92,7 +92,7 @@ def login(
         if not PLASH_CONFIG_HOME.exists(): return print("No config found.")
         return print(PLASH_CONFIG_HOME.read_json().get("session_", ""), end='')
     if token:
-        PLASH_CONFIG_HOME.write_text(json.dumps({"session_": token.strip()}))
+        PLASH_CONFIG_HOME.write_json({"session_": token.strip()})
         return f"Token saved to {PLASH_CONFIG_HOME}"
     paircode = secrets.token_urlsafe(16)
     login_url = httpx.get(_endpoint(rt=f"/cli_login?paircode={paircode}")).text
@@ -101,7 +101,7 @@ def login(
     
     cookies = _poll_cookies(paircode)
     if cookies:
-        PLASH_CONFIG_HOME.write_text(json.dumps(cookies))
+        PLASH_CONFIG_HOME.write_json(cookies)
         print(f"Authentication successful! Config saved to {PLASH_CONFIG_HOME}")
     else: print("Authentication timed out.")
 
