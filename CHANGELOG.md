@@ -2,6 +2,14 @@
 
 <!-- do not remove -->
 
+## 0.3.12
+
+
+### Bugs Squashed
+
+- Fix login when xdg config home directory does not exist ([#75](https://github.com/AnswerDotAI/plash_cli/pull/75)), thanks to [@pporcher](https://github.com/pporcher)
+
+
 ## 0.3.11
 
 ### New Features
