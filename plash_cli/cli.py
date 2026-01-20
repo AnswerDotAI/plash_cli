@@ -35,7 +35,7 @@ def _get_client(cfg=PLASH_CONFIG_HOME):
 def _mk_auth_req(url:str, method:str='get', timeout=300., **kwargs):
     r = getattr(_get_client(), method)(url, timeout=timeout, **kwargs)
     if r.status_code == 200: return r
-    else: print(f'Failure: {r.headers["X-Plash-Error"]}')
+    else: print(f'Failure: {r.headers}')
 
 # %% ../nbs/00_cli.ipynb 9
 def _get_app_name(path:Path):
