@@ -24,8 +24,14 @@ Documentation = "https://AnswerDotAI.github.io/plash_cli"
 [project.entry-points.nbdev]
 plash_cli = "plash_cli._modidx:d"
 
+[project.scripts]
+plash_deploy=plash_cli.cli:_deploy
+
 [tool.setuptools.dynamic]
 version = {attr = "plash_cli.__version__"}
+
+[project.scripts]
+plash_deploy=plash_cli.cli:_deploy
 
 [tool.setuptools.packages.find]
 include = ["plash_cli"]
