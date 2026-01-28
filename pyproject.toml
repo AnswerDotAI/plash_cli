@@ -3,19 +3,16 @@ requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name="plash_cli"
+name = "plash_cli"
 dynamic = ["version"]
 description = "CLI for the Plash hosting service"
 readme = "README.md"
-requires-python=">=3.10"
+requires-python = ">=3.10"
 license = {text = "Apache-2.0"}
 authors = [{name = "Jeremy Howard", email = "info@fast.ai"}]
 keywords = ['nbdev', 'jupyter', 'notebook', 'python']
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3 :: Only",
-]
-dependencies = ["fastcore","httpx>=0.28.1","python-dotenv","pyjwt","cryptography"]
+classifiers = ["Natural Language :: English", "Intended Audience :: Developers", "Development Status :: 3 - Alpha", "Programming Language :: Python :: 3", "Programming Language :: Python :: 3 :: Only"]
+dependencies = ['fastcore', 'httpx>=0.28.1', 'python-dotenv', 'pyjwt', 'cryptography']
 
 [project.urls]
 Repository = "https://github.com/AnswerDotAI/plash_cli"
@@ -24,16 +21,26 @@ Documentation = "https://AnswerDotAI.github.io/plash_cli"
 [project.entry-points.nbdev]
 plash_cli = "plash_cli._modidx:d"
 
+[project.optional-dependencies]
+dev = ['bash_kernel', 'nbdev']
+
+
 [project.scripts]
 plash_deploy = "plash_cli.cli:_deploy"
+plash_login = "plash_cli.cli:login"
+plash_view = "plash_cli.cli:view"
+plash_logs = "plash_cli.cli:_logs"
+plash_delete = "plash_cli.cli:_delete"
+plash_stop = "plash_cli.cli:_stop"
+plash_start = "plash_cli.cli:_start"
+plash_download = "plash_cli.cli:_download"
+plash_apps = "plash_cli.cli:_app_list"
+
 [tool.setuptools.dynamic]
 version = {attr = "plash_cli.__version__"}
 
 [tool.setuptools.packages.find]
 include = ["plash_cli"]
-
-[project.optional-dependencies]
-dev = ["bash_kernel","nbdev"]
 
 [tool.nbdev]
 custom_sidebar = false
