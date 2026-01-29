@@ -22,7 +22,7 @@ Documentation = "https://AnswerDotAI.github.io/plash_cli"
 plash_cli = "plash_cli._modidx:d"
 
 [project.optional-dependencies]
-dev = ['bash_kernel', 'nbdev']
+dev = ['bash_kernel', 'nbdev>=3']
 
 
 [project.scripts]
