@@ -35,7 +35,8 @@ def _get_client(cfg=PLASH_CONFIG_HOME):
 def _mk_auth_req(url:str, method:str='get', timeout=300., **kwargs):
     r = getattr(_get_client(), method)(url, timeout=timeout, **kwargs)
     if r.status_code == 200: return r
-    else: print(f'Failure: {r.headers["X-Plash-Error"]}')
+    msg = r.headers.get('X-Plash-Error') or r.text.strip() or f'HTTP {r.status_code}'
+    raise PlashError(msg)
 
 # %% ../nbs/00_cli.ipynb #7edae5c8
 def _get_app_name(path:Path):
@@ -169,9 +170,7 @@ def deploy(
         plash_app.write_text(f'export PLASH_APP_NAME={name}')
     
     tarz, _ = create_tar_archive(path, _force_data)
-    r = _mk_auth_req(_endpoint(rt="/upload"), "post", files={'file': tarz},
-                     data={'name': name, 'force_data': _force_data})
-    if not r: raise PlashError('Unknown failure')
+    _mk_auth_req(_endpoint(rt="/upload"), "post", files={'file': tarz}, data={'name': name, 'force_data': _force_data})
     return name if "." in name else _endpoint(sub=name)
 
 # %% ../nbs/00_cli.ipynb #59d06b03
@@ -205,8 +204,7 @@ def delete_app(
     name:str=None):      # Overrides the .plash file in project root if provided
     'Delete your deployed app'
     name = _prep(path, name)
-    r = _mk_auth_req(_endpoint(rt=f"/delete?name={name}"), "delete")
-    if not r: raise PlashError('Failed to delete app')
+    _mk_auth_req(_endpoint(rt=f"/delete?name={name}"), "delete")
     return f"App '{name}' deleted successfully"
 
 @call_parse
@@ -227,8 +225,7 @@ def start_app(
     name:str=None):      # Overrides the .plash file in project root if provided
     'Start your deployed app'
     name = _prep(path, name)
-    r = _mk_auth_req(_endpoint(rt=f"/start?name={name}"))
-    if not r: raise PlashError('Failed to start app')
+    _mk_auth_req(_endpoint(rt=f"/start?name={name}"))
     return f"App '{name}' started"
 
 @call_parse
@@ -244,8 +241,7 @@ def stop_app(
     name:str=None):      # Overrides the .plash file in project root if provided
     'Stop your deployed app'
     name = _prep(path, name)
-    r = _mk_auth_req(_endpoint(rt=f"/stop?name={name}"))
-    if not r: raise PlashError('Failed to stop app')
+    _mk_auth_req(_endpoint(rt=f"/stop?name={name}"))
     return f"App '{name}' stopped"
 
 @call_parse
@@ -266,7 +262,6 @@ def logs(
     'Get logs for your deployed app'
     name = _prep(path, name)
     r = _mk_auth_req(_endpoint(rt=f"/logs?name={name}&mode={mode}"))
-    if not r: raise PlashError('Failed to retrieve logs')
     return r.text
 
 @call_parse
@@ -302,7 +297,6 @@ def download_app(
     save_path.mkdir(exist_ok=True)
     if not save_path._is_dir_empty(): raise PlashError(f'Save path ({save_path}) is not empty.')
     r = _mk_auth_req(_endpoint(rt=f'/download?name={name}'))
-    if not r: raise PlashError('Download request failed')
     with tarfile.open(fileobj=io.BytesIO(r.content), mode="r:gz") as tar: 
         tar.extractall(path=save_path, filter='data')
     return save_path
@@ -318,7 +312,6 @@ _download.__doc__ = download_app.__doc__
 def app_list():
     "List your deployed apps"
     r = _mk_auth_req(_endpoint(rt="/user_apps"))
-    if not r: raise PlashError('Failed to retrieve')
     return r.json()
 
 @call_parse
