@@ -2,6 +2,13 @@
 
 <!-- do not remove -->
 
+## 0.3.13
+
+### New Features
+
+- Centralize error handling in _mk_auth_req ([#76](https://github.com/AnswerDotAI/plash_cli/pull/76)), thanks to [@ncoop57](https://github.com/ncoop57)
+
+
 ## 0.3.12
 
 
