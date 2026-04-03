@@ -43,4 +43,5 @@ version = {attr = "plash_cli.__version__"}
 include = ["plash_cli"]
 
 [tool.nbdev]
+allowed_cell_metadata_keys = ["solveit_ai"]
 custom_sidebar = false
