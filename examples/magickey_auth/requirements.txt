@@ -1,0 +1,2 @@
+plash_cli @ git+https://github.com/AnswerDotAI/plash_cli@magickey
+python-fasthtml
