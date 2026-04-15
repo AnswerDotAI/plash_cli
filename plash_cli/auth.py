@@ -63,8 +63,8 @@ def goog_id_from_signin_reply(session: dict, # Session dictionary containing 're
 def send_magiclink(email: str,  # Email address to send magic link to
                    url: str):   # Magic link URL (must match app's domain)
     "Send a magic link email to the given address via Plash Auth."
-    httpx.post(os.environ['PLASH_AUTH_URL']+'/send_magiclink',
+    return httpx.post(os.environ['PLASH_AUTH_URL']+'/send_magiclink',
                json=dict(email=email, url=url),
                auth=(os.environ['PLASH_APP_ID'], os.environ['PLASH_APP_SECRET']),
                headers={'X-PLASH-AUTH-VERSION': __version__}
-               ).raise_for_status()
+               )
