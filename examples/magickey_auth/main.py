@@ -3,9 +3,10 @@ from fasthtml.magickey import MagicKey
 from plash_cli.auth import send_magiclink
 
 db = database('data/data.db')
-users = db.t.user.create(id=int, email=str, pk='id', if_not_exists=True)
-passkeys = db.t.passkey.create(id=str, user_id=int, public_key=bytes, sign_count=int, pk='id', if_not_exists=True)
-User,Passkey = users.dataclass(),passkeys.dataclass()
+class User: id:int; email:str
+class Passkey: id:str; user_id:int; public_key:bytes; sign_count:int
+users = db.create(User)
+passkeys = db.create(Passkey)
 
 class Auth(MagicKey):
     def get_user_id(self, email):
