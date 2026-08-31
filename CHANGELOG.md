@@ -2,6 +2,17 @@
 
 <!-- do not remove -->
 
+## 0.3.14
+
+### New Features
+
+- Switch to hyphenated names ([#79](https://github.com/AnswerDotAI/plash_cli/issues/79))
+
+### Bugs Squashed
+
+- Update CLI flags for fastcore.script hyphenation ([#78](https://github.com/AnswerDotAI/plash_cli/pull/78)), thanks to [@jph00](https://github.com/jph00)
+
+
 ## 0.3.13
 
 ### New Features
@@ -164,4 +175,3 @@
 ## 0.0.1
 
 - init version
-
