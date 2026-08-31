@@ -26,15 +26,15 @@ dev = ['bash_kernel', 'nbdev>=3']
 
 
 [project.scripts]
-plash_deploy = "plash_cli.cli:_deploy"
-plash_login = "plash_cli.cli:login"
-plash_view = "plash_cli.cli:view"
-plash_logs = "plash_cli.cli:_logs"
-plash_delete = "plash_cli.cli:_delete"
-plash_stop = "plash_cli.cli:_stop"
-plash_start = "plash_cli.cli:_start"
-plash_download = "plash_cli.cli:_download"
-plash_apps = "plash_cli.cli:_app_list"
+plash-deploy = "plash_cli.cli:_deploy"
+plash-login = "plash_cli.cli:login"
+plash-view = "plash_cli.cli:view"
+plash-logs = "plash_cli.cli:_logs"
+plash-delete = "plash_cli.cli:_delete"
+plash-stop = "plash_cli.cli:_stop"
+plash-start = "plash_cli.cli:_start"
+plash-download = "plash_cli.cli:_download"
+plash-apps = "plash_cli.cli:_app_list"
 
 [tool.setuptools.dynamic]
 version = {attr = "plash_cli.__version__"}
