@@ -28,7 +28,7 @@ def _get_client(cfg=PLASH_CONFIG_HOME):
     client = httpx.Client()
     if tok := os.getenv("PLASH_TOKEN"): cookies = {"session_": tok}
     elif cfg.exists(): cookies = cfg.read_json()
-    else: raise FileNotFoundError("Config not found. Run plash_login and retry.")
+    else: raise FileNotFoundError("Config not found. Run plash-login and retry.")
     client.cookies.update(cookies)
     client.headers.update({'X-PLASH': 'true', 'User-Agent': f'plash_cli/{__version__}'})
     return client

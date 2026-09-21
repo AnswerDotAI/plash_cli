@@ -5,34 +5,24 @@
 
 > [!WARNING]
 >
-> Plash is in Beta and we have released it in its semi-stable state to
-> gather early feedback to improve. We do not recommend hosting critical
-> applications yet.
+> Plash is in Beta and we have released it in its semi-stable state to gather early feedback to improve. We do not recommend hosting critical applications yet.
 
 ## What is Plash
 
-Plash is a next-generation deployment platform for fast, hassle-free
-Python application hosting. It’s designed to be:
+Plash is a next-generation deployment platform for fast, hassle-free Python application hosting. It’s designed to be:
 
-- **Simple and streamlined** - deploy your applications with minimal
-  configuration
+- **Simple and streamlined** - deploy your applications with minimal configuration
 - **Developer-focused** - built for coders, not cloud engineers
 - **Fast and efficient** - get your app online in seconds, not days
 
-Plash handles all the deployment complexities so you can focus on what
-matters: building great applications. With Plash, you can deploy any
-Python app using straightforward commands and configurations, letting
-you ship your work quickly and reliably.
+Plash handles all the deployment complexities so you can focus on what matters: building great applications. With Plash, you can deploy any Python app using straightforward commands and configurations, letting you ship your work quickly and reliably.
 
-Whether you’re building web services, APIs, data applications, or tools,
-Plash provides the infrastructure backbone so you can concentrate on
-creating a splash with your code.
+Whether you’re building web services, APIs, data applications, or tools, Plash provides the infrastructure backbone so you can concentrate on creating a splash with your code.
 
 ## Tutorial: deploy your first app
 
-In this tutorial you will learn how to deploy your first app. This
-tutorial will explore the basics of using Plash and help you get
-familiar with it at a high level.
+In this tutorial you will learn how to deploy your first app.
+This tutorial will explore the basics of using Plash and help you get familiar with it at a high level.
 
 **Prerequisites:**
 
@@ -54,23 +44,29 @@ The CLI lets you manage your whole app’s lifecycle
 Authenticate with your Plash account:
 
 ``` sh
-plash_login
+plash-login
 ```
 
-This command opens your browser to authenticate with your Plash account.
-After completing the login process, you’ll see a “complete” confirmation
-page in your browser.
+This command opens your browser to authenticate with your Plash account. After completing the login process, you’ll see a “complete” confirmation page in your browser.
 
 Return to your terminal where you’ll find the confirmation message:
 
-> Authentication successful! Config saved to
-> <your-global-config-path>/plash_config.json
+> Authentication successful! Config saved to <your-global-config-path>/plash_config.json
+
+#### Alternative Authentication Methods
+
+If you’ve already logged in on one machine and want to authenticate on another without opening a browser, you can transfer your authentication token directly. Run `plash-login --show` on the machine where you’re already logged in to print your current token. You can then copy this and use `plash-login --token <your-token>` on the new machine to authenticate.
+
+For convenience, you can pipe the token directly to your clipboard. On macOS, use `plash-login --show | pbcopy`. On Linux with X11, use `plash-login --show | xclip -selection clipboard` or `plash-login --show | xsel --clipboard`. On Windows PowerShell, use `plash-login --show | Set-Clipboard`.
+
+For automated environments like CI/CD pipelines or scripts, you can set the `PLASH_TOKEN` environment variable instead of storing credentials in a config file. When this variable is set, the CLI will use it automatically without requiring `plash-login`. For example: `export PLASH_TOKEN="your-authentication-token"` on Unix-like systems, or `$env:PLASH_TOKEN="your-authentication-token"` in PowerShell.
 
 ### 3. Create your first app
 
 Create a new directory for your first app:
 
 ``` bash
+%%bash
 mkdir -p plash-tutorial
 cd plash-tutorial
 ```
@@ -78,6 +74,7 @@ cd plash-tutorial
 Next, create the `main.py` file:
 
 ``` python
+%%writefile main.py
 from fasthtml.common import *
 
 app, rt = fast_app()
@@ -89,24 +86,22 @@ def index():
 serve()
 ```
 
-This is a basic [FastHTML](https://fastht.ml) app. Plash also supports
-other popular python frameworks.
+This is a basic [FastHTML](https://fastht.ml) app. Plash also supports other popular python frameworks.
 
 > [!WARNING]
 >
-> Your app must use port 5001, as this is the port exposed by Plash’s
-> Docker container. It also happens to be the default for FastHTML apps.
+> Your app must use port 5001, as this is the port exposed by Plash’s Docker container. It also happens to be the default for FastHTML apps.
 
 And create the `requirements.txt` file:
 
 ``` python
+%%writefile requirements.txt
 python-fasthtml
 ```
 
 ### 4. Deploy your app
 
-Now that you’ve created your app files, you’re ready to deploy! From
-your `plash-tutorial` directory, run: `plash_deploy`
+Now that you’ve created your app files, you’re ready to deploy! From your `plash-tutorial` directory, run: `plash-deploy`
 
 This command will:
 
@@ -115,28 +110,27 @@ This command will:
 3.  Build and deploy your application
 
 ``` bash
-plash_deploy
+%%bash
+plash-deploy
 ```
 
     Initializing deployment...
     ✅ Upload complete! Your app is currently being built.
     It will be live at https://example-app.pla.sh
 
-**Note:** You’ll see a different url that has been randomly generated
-for your app.
+**Note:** You’ll see a different url that has been randomly generated for your app.
 
 ### 5. View your app
 
-Your app should be ready a couple of seconds after running the deploy
-command.
+Your app should be ready a couple of seconds after running the deploy command.
 
 Once your app is ready, you can:
 
 1.  Open the provided URL in your browser, or
-2.  Use the convenient plash_view command to open it automatically:
+2.  Use the convenient plash-view command to open it automatically:
 
 ``` sh
-plash_view
+plash-view
 ```
 
 When you visit that page you should see “Hello, World!”
@@ -145,21 +139,11 @@ When you visit that page you should see “Hello, World!”
 
 ## Where to go from here
 
-Learn more about what Plash has to offer in the rest of the docs at:
-<https://docs.pla.sh>
+Learn more about what Plash has to offer in the rest of the docs at: <https://docs.pla.sh>
 
-To learn more about creating web apps with FastHTML, we recommend
-looking at the official docs at: <https://fastht.ml/docs/>. In
-particular, we recommend the following:
+To learn more about creating web apps with FastHTML, we recommend looking at the official docs at: <https://fastht.ml/docs/>. In particular, we recommend the following:
 
-1.  [OAuth](https://fastht.ml/docs/explains/oauth.html) - Setup
-    authentication for your Plash App with Google Sign-In or other OAuth
-    Providers.
-2.  [Stripe](https://fastht.ml/docs/explains/stripe.html) - Accept
-    payments for your products hosted on Plash with Stripe.
+1.  [OAuth](https://fastht.ml/docs/explains/oauth.html) - Setup authentication for your Plash App with Google Sign-In or other OAuth Providers.
+2.  [Stripe](https://fastht.ml/docs/explains/stripe.html) - Accept payments for your products hosted on Plash with Stripe.
 
-Would you like to use a different python web framework? Then check out
-the [examples
-section](https://github.com/AnswerDotAI/plash_cli/tree/main/examples) of
-the repo, it has examples for many popular python web frameworks like
-FastAPI, Gradio, and Streamlit.
+Would you like to use a different python web framework? Then check out the [examples section](https://github.com/AnswerDotAI/plash_cli/tree/main/examples) of the repo, it has examples for many popular python web frameworks like FastAPI, Gradio, and Streamlit.
