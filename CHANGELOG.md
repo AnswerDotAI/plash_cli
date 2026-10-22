@@ -2,6 +2,12 @@
 
 <!-- do not remove -->
 
+## 0.3.15
+
+### Bugs Squashed
+
+- Fix Plash Errors not showing up in stderr for cli commands
+
 ## 0.3.14
 
 ### New Features
