@@ -11,7 +11,7 @@ __all__ = ['PLASH_CONFIG_HOME', 'PLASH_DOMAIN', 'pat', 'log_modes', 'PlashError'
 # %% ../nbs/00_cli.ipynb #702c219c
 from fastcore.all import *
 from fastcore.xdg import *
-import secrets, webbrowser, httpx, io, tarfile, random, string
+import secrets, webbrowser, httpx2, io, tarfile, random, string
 from pathlib import Path
 from uuid import uuid4
 from time import time, sleep
@@ -25,7 +25,7 @@ PLASH_DOMAIN = os.getenv("PLASH_DOMAIN","pla.sh")  # pla.sh plash-dev.answer.ai 
 
 # %% ../nbs/00_cli.ipynb #1de1e2b3
 def _get_client(cfg=PLASH_CONFIG_HOME):
-    client = httpx.Client()
+    client = httpx2.Client()
     if tok := os.getenv("PLASH_TOKEN"): cookies = {"session_": tok}
     elif cfg.exists(): cookies = cfg.read_json()
     else: raise FileNotFoundError("Config not found. Run plash-login and retry.")
@@ -77,7 +77,7 @@ class PlashError(Exception): pass
 def _poll_cookies(paircode, interval=1, timeout=180):
     "Poll server for token until received or timeout"
     start = time()
-    client = httpx.Client()
+    client = httpx2.Client()
     url = _endpoint(rt=f"/cli_token?paircode={paircode}")
     while time()-start < timeout:
         resp = client.get(url).raise_for_status()
@@ -98,7 +98,7 @@ def login(
         PLASH_CONFIG_HOME.write_json({"session_": token.strip()})
         return f"Token saved to {PLASH_CONFIG_HOME}"
     paircode = secrets.token_urlsafe(16)
-    login_url = httpx.get(_endpoint(rt=f"/cli_login?paircode={paircode}")).text
+    login_url = httpx2.get(_endpoint(rt=f"/cli_login?paircode={paircode}")).text
     print(f"Opening browser for authentication:\n{login_url}\n")
     webbrowser.open(login_url)
     
@@ -185,7 +185,7 @@ def _deploy(
 ):
     print('Initializing deployment...')
     try: res = deploy(path=path, name=name, _force_data=force_data)
-    except PlashError as e: return str(e)
+    except PlashError as e: raise CliError(str(e))
     print('✅ Upload complete! Your app is currently being built.\n' +
         f'It will be live at {res}')
 _deploy.__doc__ = deploy.__doc__
@@ -223,7 +223,7 @@ def _delete(
         confirm = input("Are you sure you want to delete the app? [y/N]: ")
         if confirm.lower() not in ['y', 'yes']: return print("Deletion cancelled.")
     try: print(delete_app(**kwargs))
-    except PlashError as e:  return str(e)
+    except PlashError as e:  raise CliError(str(e))
 _delete.__doc__ = delete_app.__doc__
 
 # %% ../nbs/00_cli.ipynb #d72ccd37
@@ -240,7 +240,7 @@ def start_app(
 @delegates(start_app)
 def _start(**kwargs):
     try: print(start_app(**kwargs))
-    except PlashError as e:  return str(e)
+    except PlashError as e:  raise CliError(str(e))
 _start.__doc__ = start_app.__doc__
 
 # %% ../nbs/00_cli.ipynb #ace91510
@@ -257,7 +257,7 @@ def stop_app(
 @delegates(stop_app)
 def _stop(**kwargs):
     try: print(stop_app(**kwargs))
-    except PlashError as e:  return str(e)
+    except PlashError as e:  raise CliError(str(e))
 _stop.__doc__ = stop_app.__doc__
 
 # %% ../nbs/00_cli.ipynb #24e62f1f
@@ -291,7 +291,7 @@ def _logs(
                 if kwargs.get('mode','build') == 'build' and 'Build End Time:' in new_text: return
                 sleep(1)
             except KeyboardInterrupt: print("\nExiting"); return
-    except PlashError as e:  return str(e)
+    except PlashError as e: raise CliError(str(e))
 _logs.__doc__ = logs.__doc__
 
 # %% ../nbs/00_cli.ipynb #f8441125
@@ -318,7 +318,7 @@ def download_app(
 @delegates(download_app)
 def _download(**kwargs):
     try: print(f"Downloaded your app to: {download_app(**kwargs)}")
-    except PlashError as e:  return str(e)
+    except PlashError as e:  raise CliError(str(e))
 _download.__doc__ = download_app.__doc__
 
 # %% ../nbs/00_cli.ipynb #8378e31d
@@ -330,7 +330,7 @@ def app_list():
 @call_parse
 def _app_list(verbose:bool=False): # Whether to show running status as well as name: 1=running, 0=stopped
     try: res = app_list()
-    except PlashError as e: return str(e)
+    except PlashError as e: raise CliError(str(e))
     if not res: print("You don't have any deployed Plash apps.")
     for a in res: print(f"{a['running']} {a['name']}" if verbose else a['name'])
 _app_list.__doc__ = app_list.__doc__
